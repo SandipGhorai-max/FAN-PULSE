@@ -1,0 +1,13 @@
+node_modules
+npm-debug.log
+.env
+.git
+.gitignore
+.agents
+
+frontend/node_modules
+backend/node_modules
+backend/fanpulse.db
+backend/fanpulse.db-journal
+backend/fanpulse.db-wal
+backend/fanpulse.db-shm

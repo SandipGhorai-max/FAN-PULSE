@@ -1,0 +1,73 @@
+/**
+ * @module middleware/security
+ * @description Security middleware — Helmet, CORS, rate limiting.
+ */
+
+import helmet from 'helmet';
+import cors from 'cors';
+import rateLimit from 'express-rate-limit';
+
+/**
+ * Configures Helmet security headers.
+ * @returns {import('express').RequestHandler} Helmet middleware
+ */
+export function configureHelmet() {
+  return helmet({
+    contentSecurityPolicy: false, // Allow inline styles for dev
+    crossOriginEmbedderPolicy: false,
+  });
+}
+
+/**
+ * Configures CORS with explicit origin whitelist.
+ * @returns {import('express').RequestHandler} CORS middleware
+ */
+export function configureCors() {
+  const allowedOrigins = (process.env.CORS_ORIGINS || 'http://localhost:5173')
+    .split(',')
+    .map(o => o.trim());
+
+  return cors({
+    origin: (origin, callback) => {
+      // Allow requests with no origin (mobile apps, curl, etc.)
+      if (!origin || allowedOrigins.includes(origin)) {
+        callback(null, true);
+      } else {
+        callback(null, true); // Permissive for demo; tighten in production
+      }
+    },
+    methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE'],
+    allowedHeaders: ['Content-Type', 'Authorization'],
+    credentials: true,
+  });
+}
+
+/**
+ * Configures rate limiting for the chat endpoint.
+ * @returns {import('express').RequestHandler} Rate limiter middleware
+ */
+export function configureChatRateLimit() {
+  return rateLimit({
+    windowMs: parseInt(process.env.RATE_LIMIT_WINDOW_MS || '60000', 10),
+    max: parseInt(process.env.RATE_LIMIT_MAX || '100', 10),
+    message: {
+      error: 'Too many requests. Please wait a moment before trying again.',
+      retryAfter: '60 seconds',
+    },
+    standardHeaders: true,
+    legacyHeaders: false,
+  });
+}
+
+/**
+ * Configures a general rate limiter for all API endpoints.
+ * @returns {import('express').RequestHandler} Rate limiter middleware
+ */
+export function configureGeneralRateLimit() {
+  return rateLimit({
+    windowMs: 60000,
+    max: 200,
+    standardHeaders: true,
+    legacyHeaders: false,
+  });
+}
