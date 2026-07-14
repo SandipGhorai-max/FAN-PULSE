@@ -12,8 +12,9 @@ export function SocketProvider({ children }) {
   const [isConnected, setIsConnected] = useState(false);
 
   useEffect(() => {
-    // Connect to the backend server (defaulting to localhost:3001 where our Express server runs)
-    const newSocket = io('http://localhost:3001');
+    // Connect to the backend server (using Vite env var for production, falling back to localhost)
+    const BACKEND_URL = import.meta.env.VITE_BACKEND_URL || 'http://localhost:3001';
+    const newSocket = io(BACKEND_URL);
     
     newSocket.on('connect', () => {
       console.log('Socket connected:', newSocket.id);
