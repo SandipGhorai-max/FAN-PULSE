@@ -14,9 +14,13 @@ function App() {
         <div className="app-container">
           <PABanner />
           <header className="app-header">
-            <div className="flex items-center gap-2">
-              <Activity className="text-primary" size={28} />
-              <h1 className="text-gradient">FanPulse AI</h1>
+            <div className="flex items-center gap-4">
+              <img src="/fifa-logo.svg" alt="FIFA 26" className="h-8" />
+              <div className="h-6 w-px bg-gray-500 opacity-50"></div>
+              <div className="flex items-center gap-2">
+                <Activity className="text-primary" size={24} />
+                <h1 className="text-gradient uppercase tracking-widest text-xl font-bold">FanPulse AI</h1>
+              </div>
             </div>
             <nav className="nav-links">
               <NavLink to="/" className={({ isActive }) => `nav-link ${isActive ? 'active' : ''}`}>

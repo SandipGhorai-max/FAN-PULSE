@@ -1,0 +1,15 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 260 50">
+  <defs>
+    <linearGradient id="fifaGrad" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#ffffff"/>
+      <stop offset="100%" stop-color="#d1d5db"/>
+    </linearGradient>
+    <linearGradient id="neonGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#60a5fa"/>
+      <stop offset="100%" stop-color="#c084fc"/>
+    </linearGradient>
+  </defs>
+  <text x="10" y="35" font-family="Arial, sans-serif" font-weight="900" font-size="28" fill="url(#fifaGrad)">FIFA</text>
+  <text x="80" y="33" font-family="Arial, sans-serif" font-weight="400" font-size="14" fill="#9ca3af" letter-spacing="2">WORLD CUP</text>
+  <text x="190" y="35" font-family="Arial, sans-serif" font-weight="900" font-size="30" fill="url(#neonGrad)" font-style="italic">26™</text>
+</svg>
