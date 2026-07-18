@@ -1,5 +1,5 @@
 # Stage 1: Build the Vite React Frontend
-FROM node:20-alpine AS frontend-build
+FROM node:22-alpine AS frontend-build
 WORKDIR /app/frontend
 
 # Copy package files and install dependencies
@@ -11,7 +11,7 @@ COPY frontend/ ./
 RUN npm run build
 
 # Stage 2: Setup the Backend & Serve
-FROM node:20-alpine
+FROM node:22-alpine
 WORKDIR /app
 
 # Setup Backend
@@ -26,12 +26,9 @@ COPY backend/ ./
 # Copy the built frontend from Stage 1
 COPY --from=frontend-build /app/frontend/dist /app/frontend/dist
 
-# Expose the backend port
-EXPOSE 3001
-
 # Set production environment variable
 ENV NODE_ENV=production
-ENV PORT=3001
+# PORT is set dynamically by Render — do NOT hardcode it
 
 # Ensure db directory has proper permissions in case we use SQLite
 # RUN mkdir -p /app/backend/db && chown -R node:node /app/backend/db
