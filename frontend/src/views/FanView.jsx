@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useSocket } from '../context/SocketContext';
 import StadiumMap from '../components/StadiumMap';
+import HeroSection from '../components/HeroSection';
 import { Send, MapPin, Loader } from 'lucide-react';
 
 export default function FanView() {
@@ -64,7 +65,12 @@ export default function FanView() {
   };
 
   return (
-    <div className="glass-panel animate-fade-in flex-col gap-4">
+    <div className="animate-fade-in flex-col gap-6" style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
+      {/* FIFA World Cup Hero Section */}
+      <HeroSection />
+
+      {/* Fan Dashboard */}
+      <div className="glass-panel flex-col gap-4">
       <div className="flex justify-between items-center mb-2">
         <div>
           <h2 className="text-gradient">Fan View</h2>
