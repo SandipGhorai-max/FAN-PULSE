@@ -32,15 +32,15 @@ export function seedDatabase() {
 
     // Seating Sections
     { id: 'section-100', name: 'Section 100 (Lower North)', type: 'section', capacity: 3000, coord_x: 50, coord_y: 30 },
-    { id: 'section-200', name: 'Section 200 (Lower East)', type: 'section', capacity: 3000, coord_x: 70, coord_y: 50 },
+    { id: 'section-200', name: 'Section 200 (Lower East)', type: 'section', capacity: 3000, coord_x: 70, coord_y: 40 },
     { id: 'section-300', name: 'Section 300 (Lower South)', type: 'section', capacity: 3000, coord_x: 50, coord_y: 70 },
-    { id: 'section-400', name: 'Section 400 (Lower West)', type: 'section', capacity: 3000, coord_x: 30, coord_y: 50 },
+    { id: 'section-400', name: 'Section 400 (Lower West)', type: 'section', capacity: 3000, coord_x: 30, coord_y: 40 },
 
     // Facilities
     { id: 'concession-n1', name: 'Food Court North', type: 'concession', capacity: 400, coord_x: 40, coord_y: 18 },
     { id: 'concession-s1', name: 'Food Court South', type: 'concession', capacity: 400, coord_x: 60, coord_y: 82 },
-    { id: 'medical-east', name: 'Medical Station East', type: 'medical', capacity: 50, coord_x: 85, coord_y: 50, is_accessible: 1 },
-    { id: 'medical-west', name: 'Medical Station West', type: 'medical', capacity: 50, coord_x: 15, coord_y: 50, is_accessible: 1 },
+    { id: 'medical-east', name: 'Medical Station East', type: 'medical', capacity: 50, coord_x: 85, coord_y: 60, is_accessible: 1 },
+    { id: 'medical-west', name: 'Medical Station West', type: 'medical', capacity: 50, coord_x: 15, coord_y: 60, is_accessible: 1 },
 
     // Accessible & Quiet Zones
     { id: 'accessible-viewing', name: 'Accessible Viewing Platform', type: 'accessible', capacity: 200, coord_x: 50, coord_y: 45, is_accessible: 1, is_quiet_zone: 0 },

@@ -83,8 +83,14 @@ User request: "${text}"`;
     const data = JSON.parse(responseText.trim().replace(/^```json/i, '').replace(/```$/i, ''));
     return data;
   } catch (err) {
-    console.error('LLM intent classification failed:', err);
-    // Fallback simple classification if LLM fails
+    console.error('LLM intent classification failed or API key missing. Using rule-based fallback.');
+    const lower = text.toLowerCase();
+    if (lower.match(/navigate|route|go to|find|where is|seat|food|gate|section/)) return { agent: 'navigator', intent: 'navigate', params: { destination: text } };
+    if (lower.match(/crowd|density|busy|full|surge|queue|wait/)) return { agent: 'crowd_sentinel', intent: 'check_density', params: {} };
+    if (lower.match(/wheelchair|accessible|quiet|sensory|disability/)) return { agent: 'access_companion', intent: 'accessible_route', params: { type: lower.includes('quiet') ? 'quiet_zones' : 'facilities' } };
+    if (lower.match(/transit|train|bus|uber|leave|parking|subway/)) return { agent: 'transit_copilot', intent: 'transit_info', params: {} };
+    if (lower.match(/green|recycle|carbon|sustainab/)) return { agent: 'green_ops', intent: 'sustainability', params: {} };
+    if (lower.match(/dashboard|stats|organizer/)) return { agent: 'ops_copilot', intent: 'dashboard', params: {} };
     return { agent: 'general', intent: 'help', params: {} };
   }
 }
@@ -271,7 +277,7 @@ async function dispatchToAgent(classification, context) {
       return {
         agent: 'orchestrator',
         icon: '⚽',
-        response: "⚽ **Welcome to FanPulse AI!** I'm your World Cup 2026 assistant.\n\nI can help with:\n🧭 Navigation & directions\n👁️ Crowd conditions\n♿ Accessibility\n🚌 Transit planning\n🌱 Sustainability\n🌍 Multilingual support\n\nWhat do you need?",
+        response: "⚽ **Welcome to FanPulse AI!** I can help with navigation, crowd conditions, transit, and accessibility.\n\nTry asking me:\n- *\"How do I get to Gate A?\"*\n- *\"Is the West Concourse crowded?\"*\n- *\"Where are the quiet zones?\"*",
         type: 'general',
       };
   }
