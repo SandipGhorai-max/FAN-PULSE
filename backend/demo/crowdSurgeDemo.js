@@ -88,11 +88,11 @@ export function startCrowdSurgeDemo(io) {
   }, 2000);
 
   // Step 3: Ops Copilot generates mitigation options (T+3.5s)
-  setTimeout(() => {
+  setTimeout(async () => {
     if (!demoState.running || !demoState.alertId) return;
     demoState.step = 3;
 
-    const mitigation = generateMitigationOptions(demoState.alertId);
+    const mitigation = await generateMitigationOptions(demoState.alertId);
     demoState.mitigationOptions = mitigation.options;
 
     io.emit('demo:step', {
@@ -169,11 +169,11 @@ export function selectDemoMitigation(optionId, io) {
   }, 2000);
 
   // Step 6: Polyglot Concierge fires multilingual PA (T+click+3.5s)
-  setTimeout(() => {
+  setTimeout(async () => {
     if (!demoState.running) return;
     demoState.step = 6;
 
-    const announcement = generatePAAnnouncement(
+    const announcement = await generatePAAnnouncement(
       'crowd_redirect',
       { zone: 'West Concourse', altRoute: 'East Concourse and North Concourse' },
       'concourse-west',
