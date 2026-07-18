@@ -57,64 +57,73 @@ const TRANSLATION_TEMPLATES = {
   },
 };
 
+import { generateContent } from '../utils/llm.js';
+
 /**
- * Generates a multilingual PA announcement from a template.
- * @param {string} templateKey - Key from TRANSLATION_TEMPLATES
+ * Generates a multilingual PA announcement from a template or text using Gemini.
+ * @param {string} templateKey - Key from TRANSLATION_TEMPLATES (optional)
  * @param {Record<string, string>} vars - Variables to interpolate
  * @param {string} [zoneId] - Target zone
  * @param {'normal'|'high'|'urgent'} [priority] - Priority level
- * @returns {object} PA announcement with all 5 languages
+ * @returns {Promise<object>} PA announcement with all 5 languages
  */
-export function generatePAAnnouncement(templateKey, vars = {}, zoneId = null, priority = 'normal') {
+export async function generatePAAnnouncement(templateKey, vars = {}, zoneId = null, priority = 'normal') {
   const template = TRANSLATION_TEMPLATES[templateKey];
-  if (!template) {
-    return generateCustomPAAnnouncement(vars.message || 'Attention please.', zoneId, priority);
+  let baseEnglishMessage = vars.message || 'Attention please.';
+
+  if (template && template.en) {
+    baseEnglishMessage = template.en;
+    for (const [key, value] of Object.entries(vars)) {
+      baseEnglishMessage = baseEnglishMessage.replace(new RegExp(`\\{${key}\\}`, 'g'), value);
+    }
   }
 
-  const interpolate = (text) => {
-    let result = text;
-    for (const [key, value] of Object.entries(vars)) {
-      result = result.replace(new RegExp(`\\{${key}\\}`, 'g'), value);
-    }
-    return result;
-  };
-
-  const announcement = {
-    id: uuidv4(),
-    message_en: interpolate(template.en),
-    message_es: interpolate(template.es),
-    message_fr: interpolate(template.fr),
-    message_ko: interpolate(template.ko),
-    message_ar: interpolate(template.ar),
-    zone_id: zoneId,
-    priority,
-  };
-
-  // Store in database
-  const db = getDb();
-  db.prepare(`
-    INSERT INTO pa_announcements (id, message_en, message_es, message_fr, message_ko, message_ar, zone_id, priority)
-    VALUES (@id, @message_en, @message_es, @message_fr, @message_ko, @message_ar, @zone_id, @priority)
-  `).run(announcement);
-
-  return announcement;
+  return await generateCustomPAAnnouncement(baseEnglishMessage, zoneId, priority);
 }
 
 /**
- * Generates a custom (non-template) PA announcement with basic translations.
+ * Generates a custom (non-template) PA announcement with real LLM translations.
  * @param {string} messageEn - English message
  * @param {string} [zoneId] - Target zone
  * @param {'normal'|'high'|'urgent'} [priority] - Priority level
- * @returns {object} PA announcement
+ * @returns {Promise<object>} PA announcement
  */
-export function generateCustomPAAnnouncement(messageEn, zoneId = null, priority = 'normal') {
+export async function generateCustomPAAnnouncement(messageEn, zoneId = null, priority = 'normal') {
+  const prompt = `Translate the following stadium PA announcement into Spanish, French, Korean, and Arabic.
+Ensure the tone is clear, authoritative, and helpful for fans.
+
+Message to translate: "${messageEn}"
+
+Return STRICTLY in JSON format:
+{
+  "es": "...",
+  "fr": "...",
+  "ko": "...",
+  "ar": "..."
+}`;
+
+  let translations = {
+    es: `[ES] ${messageEn}`,
+    fr: `[FR] ${messageEn}`,
+    ko: `[KO] ${messageEn}`,
+    ar: `[AR] ${messageEn}`,
+  };
+
+  try {
+    const responseText = await generateContent(prompt, 'You are a professional polyglot translator returning strict JSON.', true);
+    const data = JSON.parse(responseText.trim().replace(/^```json/i, '').replace(/```$/i, ''));
+    translations = { ...translations, ...data };
+  } catch (err) {
+    console.error('LLM translation failed:', err);
+  }
+
   const announcement = {
     id: uuidv4(),
     message_en: messageEn,
-    message_es: `[ES] ${messageEn}`,
-    message_fr: `[FR] ${messageEn}`,
-    message_ko: `[KO] ${messageEn}`,
-    message_ar: `[AR] ${messageEn}`,
+    message_es: translations.es,
+    message_fr: translations.fr,
+    message_ko: translations.ko,
+    message_ar: translations.ar,
     zone_id: zoneId,
     priority,
   };
@@ -160,17 +169,17 @@ export function translateResponse(text, targetLang) {
 /**
  * Handles a polyglot request from the orchestrator.
  * @param {{ action: string, template?: string, vars?: object, message?: string, zoneId?: string, priority?: string }} request
- * @returns {object} Polyglot response
+ * @returns {Promise<object>} Polyglot response
  */
-export function handlePolyglotRequest(request) {
+export async function handlePolyglotRequest(request) {
   const { action = 'announce', template, vars, message, zoneId, priority } = request;
 
   switch (action) {
     case 'announce':
       if (template) {
-        return { announcement: generatePAAnnouncement(template, vars || {}, zoneId, priority || 'normal') };
+        return { announcement: await generatePAAnnouncement(template, vars || {}, zoneId, priority || 'normal') };
       }
-      return { announcement: generateCustomPAAnnouncement(message || 'Attention please.', zoneId, priority || 'normal') };
+      return { announcement: await generateCustomPAAnnouncement(message || 'Attention please.', zoneId, priority || 'normal') };
 
     case 'recent':
       return { announcements: getRecentAnnouncements() };

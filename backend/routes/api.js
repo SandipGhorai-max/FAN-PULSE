@@ -26,9 +26,9 @@ export function createApiRouter(io) {
   const router = Router();
 
   /* ─── CHAT (Orchestrator) ─── */
-  router.post('/chat', configureChatRateLimit(), validate(chatSchema), (req, res) => {
+  router.post('/chat', configureChatRateLimit(), validate(chatSchema), async (req, res) => {
     try {
-      const result = routeRequest(req.validated);
+      const result = await routeRequest(req.validated);
       res.json(result);
     } catch (err) {
       console.error('Chat error:', err);
@@ -103,9 +103,9 @@ export function createApiRouter(io) {
   });
 
   /* ─── PA ANNOUNCEMENTS ─── */
-  router.get('/pa-announcements', (req, res) => {
+  router.get('/pa-announcements', async (req, res) => {
     try {
-      const result = handlePolyglotRequest({ action: 'recent' });
+      const result = await handlePolyglotRequest({ action: 'recent' });
       res.json(result);
     } catch (err) {
       console.error('PA error:', err);
@@ -114,9 +114,9 @@ export function createApiRouter(io) {
   });
 
   /* ─── OPS DASHBOARD ─── */
-  router.get('/ops/dashboard', (req, res) => {
+  router.get('/ops/dashboard', async (req, res) => {
     try {
-      const result = getOpsDashboard();
+      const result = await getOpsDashboard();
       res.json(result);
     } catch (err) {
       console.error('Ops error:', err);
@@ -125,9 +125,9 @@ export function createApiRouter(io) {
   });
 
   /* ─── MITIGATION ─── */
-  router.post('/alerts/:alertId/mitigate', (req, res) => {
+  router.post('/alerts/:alertId/mitigate', async (req, res) => {
     try {
-      const result = handleOpsRequest({ action: 'mitigate', alertId: req.params.alertId });
+      const result = await handleOpsRequest({ action: 'mitigate', alertId: req.params.alertId });
       res.json(result);
     } catch (err) {
       console.error('Mitigation error:', err);

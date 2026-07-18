@@ -6,7 +6,7 @@ import { ShieldAlert, Leaf, CheckCircle, Play, RotateCcw, Zap } from 'lucide-rea
 const API_BASE = 'http://localhost:3001';
 
 export default function OpsView() {
-  const { socket, isConnected } = useSocket();
+  const { socket } = useSocket();
   const [alerts, setAlerts] = useState([]);
   const [metrics, setMetrics] = useState({ carbon: 0, transit: 0, recycling: 0, greenScore: 0 });
   const [demoRunning, setDemoRunning] = useState(false);

@@ -58,7 +58,7 @@ if (process.env.NODE_ENV === 'production') {
 io.on('connection', (socket) => {
   console.log(`🔌 Client connected: ${socket.id}`);
 
-  socket.on('chat:message', (data) => {
+  socket.on('chat:message', async (data) => {
     try {
       // Frontend sends { text, context: { role, userId, location } }
       // routeRequest expects { message, from, role }
@@ -67,7 +67,7 @@ io.on('connection', (socket) => {
         from: data.context?.location || data.from || '',
         role: data.context?.role || data.role || 'fan',
       };
-      const result = routeRequest(request);
+      const result = await routeRequest(request);
       socket.emit('chat:response', { message: result.response, ...result });
     } catch (err) {
       // Log any errors from chat handling

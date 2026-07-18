@@ -55,74 +55,53 @@ export function detectPromptInjection(text) {
   return INJECTION_PATTERNS.some(pattern => pattern.test(text));
 }
 
+import { generateContent } from '../utils/llm.js';
+
 /**
  * Classifies user intent from natural language input.
  * @param {string} text - User input text
- * @returns {{ agent: string, intent: string, params: object }}
+ * @returns {Promise<{ agent: string, intent: string, params: object }>}
  */
-export function classifyIntent(text) {
-  const lower = text.toLowerCase();
+export async function classifyIntent(text) {
+  const prompt = `Classify the following user request into one of the FanPulse AI agent intents.
+  
+Available agents and their intents:
+1. navigator: 'navigate' (finding routes to gates, sections, food)
+2. crowd_sentinel: 'check_density' (asking about crowds, queues, congestion)
+3. access_companion: 'accessible_route' (wheelchair access) or 'quiet_zones' (sensory quiet areas)
+4. transit_copilot: 'transit_info' (train, bus, uber, leaving stadium)
+5. green_ops: 'sustainability' (recycling, carbon footprint)
+6. polyglot: 'translate' (asking for translation or speaking in non-English)
+7. ops_copilot: 'dashboard' (staff/organizer asking for status or alerts)
+8. general: 'help' (anything else)
 
-  // Navigation intents
-  if (/\b(where|how\s+do\s+i\s+get|navigate|directions?|find|go\s+to|way\s+to|route|gate|seat|section)\b/.test(lower)) {
-    const zoneMatch = lower.match(/(?:section|gate|concourse)\s*[-]?\s*(\w+)/i);
-    return {
-      agent: 'navigator',
-      intent: 'navigate',
-      params: { destination: zoneMatch ? zoneMatch[0] : null },
-    };
+Respond strictly in JSON format matching this schema:
+{
+  "agent": "agent_name",
+  "intent": "intent_name",
+  "params": {} // extract any relevant parameters like 'destination', 'type', 'lowCarbon'
+}
+
+User request: "${text}"`;
+
+  try {
+    const responseText = await generateContent(prompt, 'You are a strict JSON intent classifier.', true);
+    // Parse the JSON response
+    const data = JSON.parse(responseText.trim().replace(/^```json/i, '').replace(/```$/i, ''));
+    return data;
+  } catch (err) {
+    console.error('LLM intent classification failed:', err);
+    // Fallback simple classification if LLM fails
+    return { agent: 'general', intent: 'help', params: {} };
   }
-
-  // Crowd / density intents
-  if (/\b(crowd|busy|packed|crowded|density|congestion|wait|line|queue|surge)\b/.test(lower)) {
-    return { agent: 'crowd_sentinel', intent: 'check_density', params: {} };
-  }
-
-  // Accessibility intents
-  if (/\b(accessible|wheelchair|disability|quiet|sensory|elevator|ramp|assist)\b/.test(lower)) {
-    const wantsQuiet = /\b(quiet|sensory|calm)\b/.test(lower);
-    return {
-      agent: 'access_companion',
-      intent: wantsQuiet ? 'quiet_zones' : 'accessible_route',
-      params: { type: wantsQuiet ? 'quiet_zones' : 'route' },
-    };
-  }
-
-  // Transit intents
-  if (/\b(transit|train|bus|subway|metro|uber|lyft|rideshare|taxi|transport|get\s+here|parking|drive)\b/.test(lower)) {
-    const wantsGreen = /\b(green|eco|carbon|sustainable|environment)\b/.test(lower);
-    return {
-      agent: 'transit_copilot',
-      intent: 'transit_info',
-      params: { lowCarbon: wantsGreen },
-    };
-  }
-
-  // Sustainability intents
-  if (/\b(sustain|green|carbon|eco|environment|recycle|water\s+station|footprint)\b/.test(lower)) {
-    return { agent: 'green_ops', intent: 'sustainability', params: {} };
-  }
-
-  // Translation / language intents
-  if (/\b(translate|spanish|french|korean|arabic|language|habla|parlez|말씀)\b/.test(lower)) {
-    return { agent: 'polyglot', intent: 'translate', params: {} };
-  }
-
-  // Ops intents
-  if (/\b(ops|command|status|dashboard|overview|staff|alert|mitigation)\b/.test(lower)) {
-    return { agent: 'ops_copilot', intent: 'dashboard', params: {} };
-  }
-
-  // Default: general help
-  return { agent: 'general', intent: 'help', params: {} };
 }
 
 /**
  * Routes a request to the appropriate specialist agent.
  * @param {{ message: string, from?: string, role?: string }} request
- * @returns {object} Agent response
+ * @returns {Promise<object>} Agent response
  */
-export function routeRequest(request) {
+export async function routeRequest(request) {
   const { message, from, role = 'fan' } = request;
 
   if (!message || typeof message !== 'string') {
@@ -151,13 +130,14 @@ export function routeRequest(request) {
   }
 
   // 3. Classify intent
-  const classification = classifyIntent(message);
+  const classification = await classifyIntent(message);
 
   // 4. Route to agent
   let result;
   try {
-    result = dispatchToAgent(classification, { message, from, role });
+    result = await dispatchToAgent(classification, { message, from, role });
   } catch (err) {
+    console.error('Dispatch error:', err);
     result = {
       agent: 'orchestrator',
       response: `I encountered an issue processing your request. Please try again or ask a staff member for help.`,
@@ -179,9 +159,9 @@ export function routeRequest(request) {
  * Dispatches to the correct specialist agent.
  * @param {{ agent: string, intent: string, params: object }} classification
  * @param {{ message: string, from?: string, role?: string }} context
- * @returns {object} Agent response
+ * @returns {Promise<object>} Agent response
  */
-function dispatchToAgent(classification, context) {
+async function dispatchToAgent(classification, context) {
   const { agent, intent, params } = classification;
 
   switch (agent) {
@@ -192,7 +172,7 @@ function dispatchToAgent(classification, context) {
 
       // Match zone IDs from text
       const zoneId = matchZoneFromText(toZone);
-      const nav = handleNavigationRequest({
+      const nav = await handleNavigationRequest({
         from: fromZone,
         to: zoneId || 'section-100',
       });
@@ -209,8 +189,8 @@ function dispatchToAgent(classification, context) {
     }
 
     case 'crowd_sentinel': {
-      const overview = getDensityOverview();
-      const alerts = getActiveAlerts();
+      const overview = await getDensityOverview();
+      const alerts = await getActiveAlerts();
       const hotspots = overview.filter(z => z.density > 0.7);
 
       let response = '👁️ **Current Crowd Status:**\n';
@@ -229,7 +209,7 @@ function dispatchToAgent(classification, context) {
     }
 
     case 'access_companion': {
-      const accessResult = handleAccessRequest({
+      const accessResult = await handleAccessRequest({
         type: params.type || 'facilities',
         from: context.from,
       });
@@ -248,7 +228,7 @@ function dispatchToAgent(classification, context) {
     }
 
     case 'transit_copilot': {
-      const transit = handleTransitRequest({
+      const transit = await handleTransitRequest({
         action: 'recommend',
         lowCarbon: params.lowCarbon,
       });
@@ -263,7 +243,7 @@ function dispatchToAgent(classification, context) {
     }
 
     case 'green_ops': {
-      const green = handleGreenRequest({ action: 'dashboard' });
+      const green = await handleGreenRequest({ action: 'dashboard' });
 
       return {
         agent: 'green_ops',
@@ -284,7 +264,7 @@ function dispatchToAgent(classification, context) {
     }
 
     case 'ops_copilot': {
-      const ops = handleOpsRequest({ action: 'dashboard' });
+      const ops = await handleOpsRequest({ action: 'dashboard' });
       return {
         agent: 'ops_copilot',
         icon: '🧑‍✈️',

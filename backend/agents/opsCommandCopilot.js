@@ -10,9 +10,9 @@ import { v4 as uuidv4 } from 'uuid';
 /**
  * Generates mitigation options for a critical alert.
  * @param {string} alertId - The alert to mitigate
- * @returns {object} Mitigation options with descriptions
+ * @returns {Promise<object>} Mitigation options with descriptions
  */
-export function generateMitigationOptions(alertId) {
+export async function generateMitigationOptions(alertId) {
   const db = getDb();
   const alert = db.prepare(`
     SELECT a.*, z.name as zone_name, z.type as zone_type
@@ -24,7 +24,7 @@ export function generateMitigationOptions(alertId) {
   if (!alert) return { error: true, message: 'Alert not found' };
 
   // Generate context-aware mitigation options
-  const options = getMitigationStrategies(alert);
+  const options = await getMitigationStrategies(alert);
 
   // Store in database
   const insertOption = db.prepare(`
@@ -46,54 +46,61 @@ export function generateMitigationOptions(alertId) {
   };
 }
 
+import { generateContent } from '../utils/llm.js';
+
 /**
- * Gets mitigation strategies based on alert type and location.
+ * Gets mitigation strategies based on alert type and location using Gemini.
  * @param {object} alert - The alert object
- * @returns {Array<{label: string, description: string, impact: string}>}
+ * @returns {Promise<Array<{label: string, description: string, impact: string, action_type: string}>>}
  */
-function getMitigationStrategies(alert) {
+async function getMitigationStrategies(alert) {
   const db = getDb();
+  const altGates = db.prepare(`SELECT name FROM zones WHERE type = 'gate' AND id != ? AND status = 'normal'`).all(alert.zone_id);
+  const altGateNames = altGates.map(g => g.name).join(', ') || 'alternate gates';
 
-  if (alert.type === 'crowd_density' && alert.severity === 'critical') {
-    // Find alternative gates/routes
-    const altGates = db.prepare(`
-      SELECT name FROM zones WHERE type = 'gate' AND id != ? AND status = 'normal'
-      LIMIT 2
-    `).all(alert.zone_id);
+  const prompt = `You are the Ops Command Copilot for FanPulse AI (FIFA World Cup 2026).
+An alert has been triggered:
+Type: ${alert.type}
+Severity: ${alert.severity}
+Message: ${alert.message}
+Zone: ${alert.zone_name}
 
-    const altGateNames = altGates.map(g => g.name).join(', ') || 'alternate gates';
+Available normal gates for redirection: ${altGateNames}
 
+Propose exactly 2 mitigation options.
+Return STRICTLY in JSON format as an array of objects:
+[
+  {
+    "label": "Option A: [Short Title]",
+    "description": "[Detailed description of the action]",
+    "impact": "[Brief impact assessment]",
+    "action_type": "[redirect | hold | staff_deploy | advisory]"
+  },
+  ...
+]`;
+
+  try {
+    const responseText = await generateContent(prompt, 'You are an ops mitigation AI returning strict JSON arrays.', true);
+    const data = JSON.parse(responseText.trim().replace(/^```json/i, '').replace(/```$/i, ''));
+    return data;
+  } catch (err) {
+    console.error('LLM mitigation generation failed:', err);
+    // Fallback to static if LLM fails
     return [
       {
-        label: 'Option A: Open Alternate Routes',
-        description: `Open ${altGateNames} and redirect 30% of traffic from ${alert.zone_name}. Deploy 4 additional staff to manage flow. Estimated relief: 5-8 minutes.`,
-        impact: 'Moderate disruption, fast relief. Recommended for pre-match crowds.',
-        action_type: 'redirect',
+        label: 'Option A: Deploy Additional Staff',
+        description: `Send 6 additional staff to ${alert.zone_name || 'affected area'} for crowd management.`,
+        impact: 'Low disruption, gradual improvement.',
+        action_type: 'staff_deploy',
       },
       {
-        label: 'Option B: Controlled Entry Hold',
-        description: `Temporarily hold entry at ${alert.zone_name} for 3 minutes while internal crowd disperses. Announce delay via PA in all languages. Deploy comfort staff for queuing fans.`,
-        impact: 'Brief delay for incoming fans, but ensures safety inside. Recommended for mid-match situations.',
-        action_type: 'hold',
+        label: 'Option B: Broadcast Advisory',
+        description: `Issue multilingual PA advisory about ${alert.zone_name || 'affected area'}.`,
+        impact: 'No disruption, relies on fan compliance.',
+        action_type: 'advisory',
       },
     ];
   }
-
-  // Generic fallback options
-  return [
-    {
-      label: 'Option A: Deploy Additional Staff',
-      description: `Send 6 additional staff to ${alert.zone_name || 'affected area'} for crowd management and fan assistance.`,
-      impact: 'Low disruption, gradual improvement.',
-      action_type: 'staff_deploy',
-    },
-    {
-      label: 'Option B: Broadcast Advisory',
-      description: `Issue multilingual PA advisory about ${alert.zone_name || 'affected area'}. Suggest alternative routes to fans.`,
-      impact: 'No disruption, relies on fan compliance.',
-      action_type: 'advisory',
-    },
-  ];
 }
 
 /**
@@ -176,9 +183,9 @@ export function getOpsDashboard() {
 /**
  * Handles an ops command request from the orchestrator.
  * @param {{ action: string, alertId?: string, optionId?: string }} request
- * @returns {object} Ops response
+ * @returns {Promise<object>} Ops response
  */
-export function handleOpsRequest(request) {
+export async function handleOpsRequest(request) {
   const { action = 'dashboard', alertId, optionId, selectedBy } = request;
 
   switch (action) {
@@ -186,7 +193,7 @@ export function handleOpsRequest(request) {
       return getOpsDashboard();
     case 'mitigate':
       if (!alertId) return { error: true, message: 'alertId required' };
-      return generateMitigationOptions(alertId);
+      return await generateMitigationOptions(alertId);
     case 'select':
       if (!optionId) return { error: true, message: 'optionId required' };
       return selectMitigationOption(optionId, selectedBy);
