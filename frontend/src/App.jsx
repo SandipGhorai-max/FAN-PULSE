@@ -15,7 +15,7 @@ function App() {
           <PABanner />
           <header className="app-header" role="banner">
             <div className="flex items-center gap-4">
-              <img src="/fifa-logo.svg" alt="FIFA 26 Logo" className="h-8" />
+              <img src="/logo.png" alt="FIFA 26 Logo" className="h-10" />
               <div className="h-6 w-px bg-gray-500 opacity-50" aria-hidden="true"></div>
               <div className="flex items-center gap-2">
                 <Activity className="text-primary" size={24} aria-hidden="true" />
