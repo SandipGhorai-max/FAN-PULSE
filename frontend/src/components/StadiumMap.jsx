@@ -60,8 +60,8 @@ export default function StadiumMap({ onZoneSelect }) {
       <svg viewBox="0 0 100 100" className="w-full h-full" style={{ minHeight: '100%' }}>
         <defs>
           <radialGradient id="field-gradient" cx="50%" cy="50%" r="50%">
-            <stop offset="0%" stopColor="#22c55e" stopOpacity="0.25" />
-            <stop offset="100%" stopColor="#22c55e" stopOpacity="0.05" />
+            <stop offset="0%" stopColor="#10b981" stopOpacity="0.4" />
+            <stop offset="100%" stopColor="#047857" stopOpacity="0.1" />
           </radialGradient>
           <filter id="glow">
             <feGaussianBlur stdDeviation="1" result="blur" />
@@ -73,12 +73,12 @@ export default function StadiumMap({ onZoneSelect }) {
         </defs>
 
         {/* Stadium oval outline */}
-        <ellipse cx="50" cy="50" rx="45" ry="42" fill="none" stroke="rgba(255,255,255,0.08)" strokeWidth="0.5" />
-        <ellipse cx="50" cy="50" rx="35" ry="30" fill="none" stroke="rgba(255,255,255,0.06)" strokeWidth="0.3" />
+        <ellipse cx="50" cy="50" rx="45" ry="42" fill="none" stroke="rgba(139, 92, 246, 0.4)" strokeWidth="0.8" />
+        <ellipse cx="50" cy="50" rx="35" ry="30" fill="none" stroke="rgba(59, 130, 246, 0.5)" strokeWidth="0.5" />
 
         {/* Field */}
-        <rect x="38" y="38" width="24" height="24" rx="3" fill="url(#field-gradient)" stroke="rgba(255,255,255,0.1)" strokeWidth="0.3" />
-        <line x1="50" y1="38" x2="50" y2="62" stroke="rgba(255,255,255,0.08)" strokeWidth="0.2" />
+        <rect x="38" y="38" width="24" height="24" rx="3" fill="url(#field-gradient)" stroke="rgba(52, 211, 153, 0.6)" strokeWidth="0.5" />
+        <line x1="50" y1="38" x2="50" y2="62" stroke="rgba(52, 211, 153, 0.4)" strokeWidth="0.3" />
         <circle cx="50" cy="50" r="4" fill="none" stroke="rgba(255,255,255,0.08)" strokeWidth="0.2" />
 
         {/* Zones */}
