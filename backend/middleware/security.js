@@ -13,7 +13,15 @@ import rateLimit from 'express-rate-limit';
  */
 export function configureHelmet() {
   return helmet({
-    contentSecurityPolicy: false, // Allow inline styles for dev
+    contentSecurityPolicy: {
+      directives: {
+        defaultSrc: ["'self'"],
+        scriptSrc: ["'self'", "'unsafe-inline'"],
+        styleSrc: ["'self'", "'unsafe-inline'"],
+        imgSrc: ["'self'", "data:", "https:"],
+        connectSrc: ["'self'", "https:", "wss:", "ws:"],
+      },
+    },
     crossOriginEmbedderPolicy: false,
   });
 }

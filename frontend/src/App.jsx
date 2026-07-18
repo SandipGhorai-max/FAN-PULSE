@@ -13,29 +13,29 @@ function App() {
       <BrowserRouter>
         <div className="app-container">
           <PABanner />
-          <header className="app-header">
+          <header className="app-header" role="banner">
             <div className="flex items-center gap-4">
-              <img src="/fifa-logo.svg" alt="FIFA 26" className="h-8" />
-              <div className="h-6 w-px bg-gray-500 opacity-50"></div>
+              <img src="/fifa-logo.svg" alt="FIFA 26 Logo" className="h-8" />
+              <div className="h-6 w-px bg-gray-500 opacity-50" aria-hidden="true"></div>
               <div className="flex items-center gap-2">
-                <Activity className="text-primary" size={24} />
+                <Activity className="text-primary" size={24} aria-hidden="true" />
                 <h1 className="text-gradient uppercase tracking-widest text-xl font-bold">FanPulse AI</h1>
               </div>
             </div>
-            <nav className="nav-links">
-              <NavLink to="/" className={({ isActive }) => `nav-link ${isActive ? 'active' : ''}`}>
+            <nav className="nav-links" aria-label="Main Navigation">
+              <NavLink to="/" className={({ isActive }) => `nav-link ${isActive ? 'active' : ''}`} aria-current={({ isActive }) => (isActive ? 'page' : undefined)}>
                 Fan
               </NavLink>
-              <NavLink to="/volunteer" className={({ isActive }) => `nav-link ${isActive ? 'active' : ''}`}>
+              <NavLink to="/volunteer" className={({ isActive }) => `nav-link ${isActive ? 'active' : ''}`} aria-current={({ isActive }) => (isActive ? 'page' : undefined)}>
                 Volunteer
               </NavLink>
-              <NavLink to="/ops" className={({ isActive }) => `nav-link ${isActive ? 'active' : ''}`}>
+              <NavLink to="/ops" className={({ isActive }) => `nav-link ${isActive ? 'active' : ''}`} aria-current={({ isActive }) => (isActive ? 'page' : undefined)}>
                 Ops Command
               </NavLink>
             </nav>
             <div className="flex items-center gap-4">
-              <div className="badge badge-normal flex items-center gap-1">
-                <span className="w-2 h-2 rounded-full bg-green-400 animate-pulse"></span>
+              <div className="badge badge-normal flex items-center gap-1" role="status" aria-live="polite">
+                <span className="w-2 h-2 rounded-full bg-green-400 animate-pulse" aria-hidden="true"></span>
                 System Live
               </div>
             </div>

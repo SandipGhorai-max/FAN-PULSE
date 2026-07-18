@@ -9,12 +9,14 @@ import express from 'express';
 import { createServer } from 'http';
 import { Server as SocketIOServer } from 'socket.io';
 import { configureHelmet, configureCors, configureGeneralRateLimit } from './middleware/security.js';
+import { googleCloudLogger } from './middleware/googleCloudLogger.js';
 import { createApiRouter } from './routes/api.js';
 import { seedDatabase } from './db/seed.js';
 import { getDb } from './db/schema.js';
 import { routeRequest } from './agents/orchestrator.js';
 import path from 'path';
 import { fileURLToPath } from 'url';
+import xss from 'xss-clean';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -37,10 +39,12 @@ const io = new SocketIOServer(httpServer, {
 });
 
 /* ─── MIDDLEWARE ─── */
+app.use(googleCloudLogger);
 app.use(configureHelmet());
 app.use(configureCors());
 app.use(configureGeneralRateLimit());
 app.use(express.json({ limit: '1mb' }));
+app.use(xss());
 
 /* ─── ROUTES ─── */
 app.use('/api', createApiRouter(io));

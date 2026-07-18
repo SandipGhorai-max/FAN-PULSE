@@ -205,24 +205,24 @@ export default function OpsView() {
 
         <div className="col-span-4 flex-col gap-6 h-[500px] overflow-y-auto">
           {/* Active Alerts Panel */}
-          <div className="glass-panel flex-col gap-4">
+          <div className="glass-panel flex-col gap-4" role="region" aria-label="Active Alerts">
             <h3 className="font-medium text-sm text-muted uppercase flex items-center gap-2">
-              <ShieldAlert size={16} /> Active Alerts ({alerts.filter(a => a.status !== 'resolved').length})
+              <ShieldAlert size={16} aria-hidden="true" /> Active Alerts ({alerts.filter(a => a.status !== 'resolved').length})
             </h3>
 
-            <div className="flex-col gap-4">
+            <div className="flex-col gap-4" aria-live="polite">
               {alerts.length === 0 ? (
                 <p className="text-center text-muted text-sm my-4">
                   No active alerts. Click <strong>Demo</strong> to simulate a crowd surge scenario.
                 </p>
               ) : (
                 alerts.map(alert => (
-                  <div key={alert.id} className={`glass-panel p-3 ${alert.status === 'resolved' ? 'opacity-50' : ''}`}>
+                  <div key={alert.id} className={`glass-panel p-3 ${alert.status === 'resolved' ? 'opacity-50' : ''}`} role="alert">
                     <div className="flex justify-between items-center mb-2">
                       <div className={`badge ${alert.severity === 'critical' ? 'badge-critical' : 'badge-warning'}`}>
                         {alert.type || alert.severity}
                       </div>
-                      {alert.status === 'resolved' && <CheckCircle size={16} style={{ color: '#22c55e' }} />}
+                      {alert.status === 'resolved' && <CheckCircle size={16} style={{ color: '#22c55e' }} aria-label="Resolved" />}
                     </div>
                     <p className="text-sm font-medium">{alert.message}</p>
 
@@ -235,6 +235,7 @@ export default function OpsView() {
                             onClick={() => handleMitigate(alert.id, opt.id)}
                             className="btn btn-primary text-xs flex-1 py-1 px-2"
                             title={opt.description}
+                            aria-label={`Mitigate: ${opt.description}`}
                           >
                             {opt.option_label || opt.label}
                           </button>
@@ -245,8 +246,8 @@ export default function OpsView() {
                     {/* Default actions when no specific options available */}
                     {alert.status !== 'resolved' && !alert.options && (
                       <div className="flex gap-2 mt-3">
-                        <button onClick={() => handleDismiss(alert.id)} className="btn btn-outline text-xs flex-1 py-1">Dismiss</button>
-                        <button onClick={() => handleMitigate(alert.id)} className="btn btn-primary text-xs flex-1 py-1">Auto-Mitigate</button>
+                        <button onClick={() => handleDismiss(alert.id)} className="btn btn-outline text-xs flex-1 py-1" aria-label="Dismiss alert">Dismiss</button>
+                        <button onClick={() => handleMitigate(alert.id)} className="btn btn-primary text-xs flex-1 py-1" aria-label="Auto-Mitigate alert">Auto-Mitigate</button>
                       </div>
                     )}
                   </div>

@@ -83,7 +83,7 @@ User request: "${text}"`;
     const data = JSON.parse(responseText.trim().replace(/^```json/i, '').replace(/```$/i, ''));
     return data;
   } catch (err) {
-    console.error('LLM intent classification failed or API key missing. Using rule-based fallback.');
+    console.error('LLM intent classification failed or API key missing:', err.message, 'Using rule-based fallback.');
     const lower = text.toLowerCase();
     if (lower.match(/navigate|route|go to|find|where is|seat|food|gate|section/)) return { agent: 'navigator', intent: 'navigate', params: { destination: text } };
     if (lower.match(/crowd|density|busy|full|surge|queue|wait/)) return { agent: 'crowd_sentinel', intent: 'check_density', params: {} };
@@ -254,12 +254,25 @@ async function dispatchToAgent(classification, context) {
     }
 
     case 'polyglot': {
-      return {
-        agent: 'polyglot',
-        icon: '🌍',
-        response: '🌍 **Multilingual Support Available!**\nI can communicate in:\n🇺🇸 English\n🇪🇸 Español\n🇫🇷 Français\n🇰🇷 한국어\n🇸🇦 العربية\n\nJust ask your question in any language!',
-        type: 'language',
-      };
+      try {
+        const polyglotPrompt = `You are a multilingual assistant for FanPulse AI. The user says: "${context.message}". 
+        Translate or respond to their query in their original language. Keep it brief and helpful.`;
+        const llmResponse = await generateContent(polyglotPrompt, 'You are a multilingual concierge.');
+        return {
+          agent: 'polyglot',
+          icon: '🌍',
+          response: llmResponse,
+          type: 'language',
+        };
+      } catch (err) {
+        console.error('Polyglot agent error:', err);
+        return {
+          agent: 'polyglot',
+          icon: '🌍',
+          response: '🌍 **Multilingual Support Available!**\nI can communicate in:\n🇺🇸 English\n🇪🇸 Español\n🇫🇷 Français\n🇰🇷 한국어\n🇸🇦 العربية\n\nJust ask your question in any language!',
+          type: 'language',
+        };
+      }
     }
 
     case 'ops_copilot': {
@@ -274,12 +287,26 @@ async function dispatchToAgent(classification, context) {
     }
 
     default:
-      return {
-        agent: 'orchestrator',
-        icon: '⚽',
-        response: "⚽ **Welcome to FanPulse AI!** I can help with navigation, crowd conditions, transit, and accessibility.\n\nTry asking me:\n- *\"How do I get to Gate A?\"*\n- *\"Is the West Concourse crowded?\"*\n- *\"Where are the quiet zones?\"*",
-        type: 'general',
-      };
+      try {
+        const genPrompt = `You are FanPulse AI, a helpful virtual assistant for the FIFA World Cup 2026. 
+        A fan asked: "${context.message}". 
+        Give a polite and helpful response guiding them on how you can help (navigation, crowd conditions, transit, accessibility).`;
+        const llmResponse = await generateContent(genPrompt, 'You are a helpful World Cup assistant.');
+        return {
+          agent: 'orchestrator',
+          icon: '⚽',
+          response: llmResponse,
+          type: 'general',
+        };
+      } catch (err) {
+        console.error('General agent error:', err);
+        return {
+          agent: 'orchestrator',
+          icon: '⚽',
+          response: "⚽ **Welcome to FanPulse AI!** I can help with navigation, crowd conditions, transit, and accessibility.\n\nTry asking me:\n- *\"How do I get to Gate A?\"*\n- *\"Is the West Concourse crowded?\"*\n- *\"Where are the quiet zones?\"*",
+          type: 'general',
+        };
+      }
   }
 }
 

@@ -88,21 +88,21 @@ export default function FanView() {
             FanPulse Assistant
           </h3>
           
-          <div className="chat-messages glass-panel flex-1 mb-4">
+          <div className="chat-messages glass-panel flex-1 mb-4" aria-live="polite" aria-atomic="false">
             {messages.map((msg, i) => (
               <div key={i} className={`chat-bubble ${msg.role}`}>
                 {msg.content}
               </div>
             ))}
             {isLoading && (
-              <div className="chat-bubble bot text-muted flex items-center gap-2">
-                <Loader size={16} className="animate-spin" /> Thinking...
+              <div className="chat-bubble bot text-muted flex items-center gap-2" aria-label="Assistant is typing...">
+                <Loader size={16} className="animate-spin" aria-hidden="true" /> Thinking...
               </div>
             )}
             <div ref={messagesEndRef} />
           </div>
           
-          <form onSubmit={sendMessage} className="flex gap-2">
+          <form onSubmit={sendMessage} className="flex gap-2" aria-label="Chat input form">
             <input 
               type="text" 
               className="input-field" 
@@ -110,13 +110,15 @@ export default function FanView() {
               value={input}
               onChange={(e) => setInput(e.target.value)}
               disabled={isLoading || !isConnected}
+              aria-label="Message input"
             />
             <button 
               type="submit" 
               className="btn btn-primary" 
-              disabled={isLoading || !isConnected}
+              disabled={isLoading || !isConnected || !input.trim()}
+              aria-label="Send message"
             >
-              <Send size={18} />
+              <Send size={18} aria-hidden="true" />
             </button>
           </form>
         </div>
