@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { useSocket } from '../context/SocketContext';
 
-const API_BASE = 'http://localhost:3001';
+const API_BASE = import.meta.env.VITE_BACKEND_URL || 'http://localhost:3001';
 
 const STATUS_COLORS = {
   normal: '#10b981',

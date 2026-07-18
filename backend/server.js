@@ -23,13 +23,12 @@ const PORT = parseInt(process.env.PORT || '3001', 10);
 const app = express();
 const httpServer = createServer(app);
 
-// Socket.IO — accept both Vite dev ports
-const ALLOWED_ORIGINS = (process.env.CORS_ORIGINS || 'http://localhost:5173,http://localhost:5174')
-  .split(',').map(s => s.trim());
+// Socket.IO — accept all origins for deployment flexibility
+const ALLOWED_ORIGINS = (process.env.CORS_ORIGINS || '*');
 
 const io = new SocketIOServer(httpServer, {
   cors: {
-    origin: ALLOWED_ORIGINS,
+    origin: ALLOWED_ORIGINS === '*' ? true : ALLOWED_ORIGINS.split(',').map(s => s.trim()),
     methods: ['GET', 'POST'],
     credentials: true,
   },

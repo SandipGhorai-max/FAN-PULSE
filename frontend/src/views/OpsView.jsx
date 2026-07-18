@@ -3,7 +3,7 @@ import { useSocket } from '../context/SocketContext';
 import StadiumMap from '../components/StadiumMap';
 import { ShieldAlert, Leaf, CheckCircle, Play, RotateCcw, Zap } from 'lucide-react';
 
-const API_BASE = 'http://localhost:3001';
+const API_BASE = import.meta.env.VITE_BACKEND_URL || 'http://localhost:3001';
 
 export default function OpsView() {
   const { socket } = useSocket();
