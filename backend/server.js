@@ -24,14 +24,16 @@ const app = express();
 const httpServer = createServer(app);
 
 // Socket.IO — accept all origins for deployment flexibility
-const ALLOWED_ORIGINS = (process.env.CORS_ORIGINS || '*');
-
 const io = new SocketIOServer(httpServer, {
   cors: {
-    origin: ALLOWED_ORIGINS === '*' ? true : ALLOWED_ORIGINS.split(',').map(s => s.trim()),
+    origin: true, // Allow all origins (tunnel + Vercel + localhost)
     methods: ['GET', 'POST'],
-    credentials: true,
+    credentials: false,
   },
+  transports: ['polling', 'websocket'], // Polling first — works through tunnels
+  allowEIO3: true,
+  pingTimeout: 60000,
+  pingInterval: 25000,
 });
 
 /* ─── MIDDLEWARE ─── */
@@ -82,8 +84,11 @@ io.on('connection', (socket) => {
 
 /* ─── STARTUP ─── */
 // Initialize database and seed
-getDb();
-seedDatabase();
+const db = getDb();
+const isSeeded = db.prepare('SELECT count(*) as count FROM zones').get().count > 0;
+if (!isSeeded) {
+  seedDatabase();
+}
 
 httpServer.listen(PORT, () => {
   console.log('');
