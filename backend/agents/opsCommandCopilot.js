@@ -32,7 +32,7 @@ export async function generateMitigationOptions(alertId) {
     VALUES (?, ?, ?, ?, 'proposed')
   `);
 
-  const storedOptions = options.map((opt, i) => {
+  const storedOptions = options.map((opt) => {
     const id = uuidv4();
     insertOption.run(id, alertId, opt.label, opt.description);
     return { id, ...opt };
