@@ -1,5 +1,7 @@
 <div align="center">
-  <img src="./logo.png" width="150" alt="FIFA World Cup 2026" />
+  <img src="./banner.png" alt="FanPulse AI Banner" width="100%" />
+  <br/><br/>
+  <img src="./logo.png" width="120" alt="FIFA World Cup 2026" />
   <h1>⚡🌎⚽ FanPulse AI</h1>
   <p><b>GenAI Multi-Agent Command Center for FIFA World Cup 2026™</b></p>
 
@@ -9,22 +11,24 @@
   [![Node.js](https://img.shields.io/badge/Node.js-22+-339933?style=for-the-badge&logo=node.js&logoColor=white)](https://nodejs.org)
   [![React](https://img.shields.io/badge/React-19-61DAFB?style=for-the-badge&logo=react&logoColor=black)](https://react.dev)
   [![Socket.IO](https://img.shields.io/badge/Socket.IO-4.8-010101?style=for-the-badge&logo=socket.io)](https://socket.io)
+  [![License](https://img.shields.io/badge/License-MIT-purple?style=for-the-badge)](./LICENSE)
 </div>
 
 ---
 
 ## 📋 Table of Contents
-- [🎯 Pitch Summary](#-pitch-summary)
-- [🚀 Live Demo](#-live-demo-urls)
-- [🏗️ Architecture](#️-architecture)
-- [🛠 Tech Stack](#-tech-stack)
-- [🤖 AI Agent Squad](#-ai-agent-squad)
-- [📁 Project Structure](#-project-structure)
-- [💻 Local Setup](#-local-setup--run-steps)
-- [☁️ Deployment](#️-deployment-instructions)
-- [📡 API Endpoints](#-api-endpoints)
-- [🧪 Testing](#-testing)
-- [🏆 Rubric Self-Audit](#-rubric-self-audit)
+- 🎯 [Pitch Summary](#-pitch-summary)
+- 🚀 [Live Demo](#-live-demo-urls)
+- ✨ [Attractive Features](#-attractive-features)
+- 🏗️ [Architecture](#️-architecture)
+- 🛠 [Tech Stack](#-tech-stack)
+- 🤖 [AI Agent Squad](#-ai-agent-squad)
+- 📁 [Project Structure](#-project-structure)
+- 💻 [Local Setup](#-local-setup--run-steps)
+- ☁️ [Deployment](#️-deployment-instructions)
+- 📡 [API Endpoints](#-api-endpoints)
+- 🧪 [Testing](#-testing)
+- 🏆 [Rubric Self-Audit](#-rubric-self-audit)
 
 ---
 
@@ -33,15 +37,6 @@
 > World Cup 2026 is the biggest in history — **48 nations**, **16 host cities**, cross-border transit bottlenecks, extreme heat, and command centers fusing CCTV, tickets, and weather into split-second decisions. Static apps can't handle it. It needs a **REASONING layer**.
 
 **FanPulse AI** is an autonomous full-stack command center driven by a squad of **8 specialized AI agents**. It replaces static dashboards with real-time, context-aware reasoning. Seven domain-specific agents—from the `Navigator` calculating dynamic shortest-path routes via Dijkstra's algorithm to the `Ops Command Copilot` fusing signals into ranked mitigation strategies—all share a single live **"Stadium Context Graph"** (SQLite). This means an organizer's split-second decision instantly ripples out to fan apps and volunteer dashboards in multiple languages.
-
-### ✨ Key Highlights
-- 🧠 **Multi-Agent Architecture** — 8 specialized agents with a central Orchestrator
-- 📡 **Real-Time WebSockets** — Live crowd density, alerts, and PA announcements via Socket.IO
-- 🗺️ **Dynamic Routing** — Dijkstra's shortest-path algorithm that avoids congested zones
-- 🌍 **Multilingual Support** — PA announcements in 5 languages (EN, ES, FR, KO, AR)
-- ♿ **Accessibility-First** — Wheelchair routing, sensory quiet zones, WCAG 2.1 AA compliant
-- 🌱 **Sustainability Tracking** — Real-time carbon footprint and green transit nudges
-- 🛡️ **Security Hardened** — Prompt injection defense, Zod validation, rate limiting, Helmet
 
 ---
 
@@ -54,6 +49,32 @@
 | **Health Check** | [Check Health](https://fan-pulse.onrender.com/api/health) | ✅ OK |
 
 > **Note:** Render free-tier services spin down after 15 minutes of inactivity. The first request after idle may take ~30 seconds to wake up — this is normal Render behavior.
+
+---
+
+## ✨ Attractive Features
+
+FanPulse AI doesn't just display data; it acts on it. Here are some of the most attractive, cutting-edge features:
+
+<details open>
+<summary><b>💬 Intelligent AI Concierge</b></summary>
+Interact with the system using natural language. The central Orchestrator AI detects your intent (e.g., "Where is the nearest food?", "I need a wheelchair route") and delegates the query to specialized AI sub-agents to provide context-aware, real-time assistance.
+</details>
+
+<details open>
+<summary><b>🗺️ Dynamic Avoidance Routing</b></summary>
+Built-in pathfinding (using Dijkstra's algorithm) constantly queries the live Stadium Graph. If a concourse gets crowded, the algorithm automatically recalculates the route to guide fans through less congested, safer alternatives.
+</details>
+
+<details open>
+<summary><b>🌍 Global Polyglot PA System</b></summary>
+Instantly translates and broadcasts live stadium announcements across 5 languages simultaneously via WebSockets, ensuring every fan understands critical updates.
+</details>
+
+<details open>
+<summary><b>🚨 Predictive Crowd Surge Analytics</b></summary>
+The Ops Dashboard provides a bird's-eye view of zone capacities. When the "Crowd Sentinel" agent detects rapid density spikes, it generates automatic alerts and suggests instant mitigation strategies.
+</details>
 
 ---
 
