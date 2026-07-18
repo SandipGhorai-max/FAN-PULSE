@@ -23,22 +23,11 @@ export function configureHelmet() {
  * @returns {import('express').RequestHandler} CORS middleware
  */
 export function configureCors() {
-  const allowedOrigins = (process.env.CORS_ORIGINS || 'http://localhost:5173')
-    .split(',')
-    .map(o => o.trim());
-
   return cors({
-    origin: (origin, callback) => {
-      // Allow requests with no origin (mobile apps, curl, etc.)
-      if (!origin || allowedOrigins.includes(origin)) {
-        callback(null, true);
-      } else {
-        callback(null, true); // Permissive for demo; tighten in production
-      }
-    },
+    origin: true, // Allow all origins for tunnel/Vercel deployment
     methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE'],
     allowedHeaders: ['Content-Type', 'Authorization'],
-    credentials: true,
+    credentials: false,
   });
 }
 
