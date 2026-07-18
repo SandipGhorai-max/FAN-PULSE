@@ -14,11 +14,21 @@ function App() {
         <div className="app-container">
           <PABanner />
           <header className="app-header" role="banner">
-            <div className="flex items-center gap-4">
-              <img src="/logo.png" alt="FIFA 26 Logo" className="h-10" />
+            <div className="flex items-center gap-3">
+              <img
+                src="/logo.png"
+                alt="FanPulse AI - FIFA World Cup 2026"
+                style={{
+                  height: '44px',
+                  width: '44px',
+                  objectFit: 'contain',
+                  borderRadius: '8px',
+                  filter: 'drop-shadow(0 0 8px rgba(0, 212, 180, 0.6))',
+                }}
+              />
               <div className="h-6 w-px bg-gray-500 opacity-50" aria-hidden="true"></div>
               <div className="flex items-center gap-2">
-                <Activity className="text-primary" size={24} aria-hidden="true" />
+                <Activity className="text-primary" size={20} aria-hidden="true" />
                 <h1 className="text-gradient uppercase tracking-widest text-xl font-bold">FanPulse AI</h1>
               </div>
             </div>
