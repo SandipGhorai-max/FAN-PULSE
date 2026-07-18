@@ -1,5 +1,5 @@
 <div align="center">
-  <img src="https://upload.wikimedia.org/wikipedia/en/thumb/e/e3/2026_FIFA_World_Cup.svg/1200px-2026_FIFA_World_Cup.svg.png" width="150" alt="FIFA World Cup 2026" />
+  <img src="./logo.png" width="150" alt="FIFA World Cup 2026" />
   <h1>⚡🌎⚽ FanPulse AI</h1>
   <p><b>GenAI Multi-Agent Command Center for FIFA World Cup 2026™</b></p>
 
