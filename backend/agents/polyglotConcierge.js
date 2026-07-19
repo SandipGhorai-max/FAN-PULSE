@@ -7,6 +7,7 @@
 
 import { getDb } from '../db/schema.js';
 import { v4 as uuidv4 } from 'uuid';
+import { generateContent } from '../utils/llm.js';
 
 /**
  * Translation templates for common stadium scenarios.
@@ -58,7 +59,6 @@ const TRANSLATION_TEMPLATES = {
   },
 };
 
-import { generateContent } from '../utils/llm.js';
 
 /**
  * Generates a multilingual PA announcement from a template or text using Gemini.

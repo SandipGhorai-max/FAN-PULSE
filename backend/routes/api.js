@@ -15,7 +15,6 @@ import { handleAccessRequest } from '../agents/accessCompanion.js';
 import { startCrowdSurgeDemo, selectDemoMitigation, getDemoState, resetDemo, stopDemo } from '../demo/crowdSurgeDemo.js';
 import { validate, chatSchema, mitigationSelectSchema, navigationSchema } from '../middleware/validation.js';
 import { configureChatRateLimit } from '../middleware/security.js';
-// Removed unused getDb import
 
 /**
  * Creates and configures the API router.

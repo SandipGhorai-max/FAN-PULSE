@@ -6,6 +6,7 @@
 
 import { getDb } from '../db/schema.js';
 import { v4 as uuidv4 } from 'uuid';
+import { generateContent } from '../utils/llm.js';
 
 /**
  * Generates mitigation options for a critical alert.
@@ -46,8 +47,6 @@ export async function generateMitigationOptions(alertId) {
     recommendation: `Based on current conditions, Option A is recommended for faster crowd relief.`,
   };
 }
-
-import { generateContent } from '../utils/llm.js';
 
 /**
  * Gets mitigation strategies based on alert type and location using Gemini.
