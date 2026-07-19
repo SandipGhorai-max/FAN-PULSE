@@ -64,6 +64,7 @@ describe('Error Wrapper Utils', () => {
     expect(result).toEqual({
       status: 'error',
       code: 'CODE',
+      statusCode: 404,
       message: 'msg',
       agent: 'TestAgent'
     });
@@ -73,6 +74,7 @@ describe('Error Wrapper Utils', () => {
     const err = new Error('generic');
     const result = handleAgentError(err, 'TestAgent');
     expect(result.code).toBe('INTERNAL_ERROR');
+    expect(result.statusCode).toBe(500);
     expect(result.agent).toBe('TestAgent');
   });
 
@@ -82,6 +84,7 @@ describe('Error Wrapper Utils', () => {
     
     const result = await wrapped();
     expect(result.code).toBe('INTERNAL_ERROR');
+    expect(result.statusCode).toBe(500);
     expect(result.agent).toBe('Agent');
   });
 

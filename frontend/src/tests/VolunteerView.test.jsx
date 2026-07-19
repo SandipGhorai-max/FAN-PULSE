@@ -2,6 +2,7 @@ import React from 'react';
 import { render, screen, fireEvent, act, waitFor } from '@testing-library/react';
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import VolunteerView from '../views/VolunteerView';
+import { useSocket } from '../context/SocketContext';
 
 // Create a mock socket that we can control
 const mockSocket = {
@@ -14,7 +15,7 @@ const mockSocket = {
 // Mock the SocketContext to provide our controllable mock
 vi.mock('../context/SocketContext', () => ({
   SocketProvider: ({ children }) => children,
-  useSocket: () => ({ socket: mockSocket, isConnected: true }),
+  useSocket: vi.fn(() => ({ socket: mockSocket, isConnected: true })),
 }));
 
 describe('VolunteerView Component', () => {
@@ -97,14 +98,38 @@ describe('VolunteerView Component', () => {
         priority: 'urgent',
         message_en: 'Gate A is congested. Use Gate B.',
         message_es: 'Puerta A congestionada. Use Puerta B.',
+        message_fr: 'La porte A est encombrée.',
+        message_ko: '게이트 A가 혼잡합니다.',
+        message_ar: 'البوابة أ مزدحمة.',
+      });
+      broadcastHandler({
+        priority: 'info',
+        message_en: 'Welcome to the stadium.',
       });
     });
 
     // Verify broadcast appears in the UI
     expect(screen.getByText('Gate A is congested. Use Gate B.')).toBeInTheDocument();
     expect(screen.getByText('URGENT')).toBeInTheDocument();
-    // Spanish translation
+    expect(screen.getByText('INFO')).toBeInTheDocument();
+    // translations
     expect(screen.getByText(/Puerta A congestionada/)).toBeInTheDocument();
+    expect(screen.getByText(/La porte A est encombrée/)).toBeInTheDocument();
+    expect(screen.getByText(/게이트 A가 혼잡합니다/)).toBeInTheDocument();
+    expect(screen.getByText(/البوابة أ مزدحمة/)).toBeInTheDocument();
+  });
+
+  it('handles null socket safely', () => {
+    vi.mocked(useSocket).mockImplementation(() => ({ socket: null, isConnected: false }));
+    render(<VolunteerView />);
+    
+    // Nothing should crash
+    const submitBtn = screen.getByText('Submit Report');
+    fireEvent.click(submitBtn);
+    expect(mockSocket.emit).not.toHaveBeenCalled();
+    
+    // Restore the original mock implementation
+    vi.mocked(useSocket).mockImplementation(() => ({ socket: mockSocket, isConnected: true }));
   });
 
   it('cleans up socket listener on unmount', () => {

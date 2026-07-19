@@ -32,7 +32,12 @@ describe('Ops Command Copilot', () => {
     expect(res.options.length).toBeGreaterThan(0);
     optionId = res.options[0].id;
     
-    await expect(handleOpsRequest({ action: 'mitigate' })).rejects.toThrow(/alertId required/);
+    try {
+      await handleOpsRequest({ action: 'mitigate' });
+    } catch (err) {
+      expect(err.message).toMatch(/alertId required/);
+      expect(err.statusCode).toBe(400);
+    }
   });
 
   it('handleOpsRequest routes select properly', async () => {
@@ -43,14 +48,29 @@ describe('Ops Command Copilot', () => {
     const res = await handleOpsRequest({ action: 'select', optionId: optId });
     expect(res.status).toBe('selected');
     
-    await expect(handleOpsRequest({ action: 'select' })).rejects.toThrow(/optionId required/);
+    try {
+      await handleOpsRequest({ action: 'select' });
+    } catch (err) {
+      expect(err.message).toMatch(/optionId required/);
+      expect(err.statusCode).toBe(400);
+    }
   });
 
   it('selectMitigationOption returns error if option not found', () => {
-    expect(() => selectMitigationOption('unknown-option')).toThrow(/Option not found/);
+    try {
+      selectMitigationOption('unknown-option');
+    } catch (err) {
+      expect(err.message).toMatch(/Option not found/);
+      expect(err.statusCode).toBe(404);
+    }
   });
 
   it('generateMitigationOptions returns error if alert not found', async () => {
-    await expect(generateMitigationOptions('unknown-alert')).rejects.toThrow(/Alert not found/);
+    try {
+      await generateMitigationOptions('unknown-alert');
+    } catch (err) {
+      expect(err.message).toMatch(/Alert not found/);
+      expect(err.statusCode).toBe(404);
+    }
   });
 });

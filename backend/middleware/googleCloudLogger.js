@@ -12,7 +12,7 @@ const loggingWinston = new LoggingWinston({
 });
 
 export const logger = winston.createLogger({
-  level: 'info',
+  level: process.env.NODE_ENV === 'test' ? 'silent' : 'info',
   transports: [
     new winston.transports.Console(),
     // Fallback if not in test env

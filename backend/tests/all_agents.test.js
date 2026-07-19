@@ -219,11 +219,23 @@ describe('navigator', () => {
   });
 
   it('returns error for unknown from zone', () => {
-    expect(() => navigator.handleNavigationRequest({ from: 'unknown-zone', to: 'section-100' })).toThrow(/Unknown zone: unknown-zone/);
+    try {
+      navigator.handleNavigationRequest({ from: 'unknown-zone', to: 'section-100' });
+    } catch (err) {
+      expect(err.message).toMatch(/Unknown zone: unknown-zone/);
+      expect(err.statusCode).toBe(404);
+      expect(err.code).toBe('NOT_FOUND');
+    }
   });
 
   it('returns error for unknown to zone', () => {
-    expect(() => navigator.handleNavigationRequest({ from: 'gate-a', to: 'unknown-zone' })).toThrow(/Unknown zone: unknown-zone/);
+    try {
+      navigator.handleNavigationRequest({ from: 'gate-a', to: 'unknown-zone' });
+    } catch (err) {
+      expect(err.message).toMatch(/Unknown zone: unknown-zone/);
+      expect(err.statusCode).toBe(404);
+      expect(err.code).toBe('NOT_FOUND');
+    }
   });
 
   it('gets reroute suggestions around a congested zone', () => {

@@ -19,6 +19,12 @@ export default defineConfig({
         'server.js',
         '*.config.js'
       ],
+      thresholds: {
+        lines: 90,
+        functions: 90,
+        branches: 80,
+        statements: 90,
+      }
     },
     // Isolate each test file so the DB singleton is fresh per file
     isolate: true,

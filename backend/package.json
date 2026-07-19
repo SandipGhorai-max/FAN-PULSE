@@ -10,6 +10,7 @@
     "seed": "node db/seed.js",
     "test": "vitest run",
     "test:watch": "vitest",
+    "test:coverage": "vitest run --coverage",
     "lint": "eslint . --ext .js",
     "format": "prettier --write ."
   },

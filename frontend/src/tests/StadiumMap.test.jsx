@@ -2,6 +2,7 @@ import React from 'react';
 import { render, screen, act, waitFor, fireEvent } from '@testing-library/react';
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import StadiumMap from '../components/StadiumMap';
+import { useSocket } from '../context/SocketContext';
 
 // Create a controllable mock socket
 const mockSocket = {
@@ -13,7 +14,7 @@ const mockSocket = {
 
 // Mock the SocketContext
 vi.mock('../context/SocketContext', () => ({
-  useSocket: () => ({ socket: mockSocket, isConnected: true }),
+  useSocket: vi.fn(() => ({ socket: mockSocket, isConnected: true })),
 }));
 
 const MOCK_ZONES = [
@@ -121,11 +122,45 @@ describe('StadiumMap Component', () => {
     // Simulate an alert:new event for gate-a with critical severity
     act(() => {
       handler({ zone_id: 'gate-a', severity: 'critical' });
+      handler({ zone_id: 'gate-b', severity: 'warning' });
+      handler({ severity: 'warning' }); // no zone_id should be ignored
     });
 
     // gate-a should now be updated internally (status changed)
     // We can verify by checking the component didn't crash
     expect(screen.getByText('Gate A')).toBeInTheDocument();
+  });
+
+  it('handles zones:updated and demo:completed by fetching again', async () => {
+    render(<StadiumMap />);
+    await waitFor(() => {
+      expect(screen.getByText('Gate A')).toBeInTheDocument();
+    });
+
+    const updateHandler = mockSocket.on.mock.calls.find(c => c[0] === 'zones:updated')[1];
+    const demoHandler = mockSocket.on.mock.calls.find(c => c[0] === 'demo:completed')[1];
+
+    global.fetch.mockClear();
+
+    act(() => {
+      updateHandler();
+      demoHandler();
+    });
+
+    await waitFor(() => {
+      expect(global.fetch).toHaveBeenCalledTimes(2);
+    });
+  });
+
+  it('handles null socket safely', () => {
+    vi.mocked(useSocket).mockImplementation(() => ({ socket: null, isConnected: false }));
+    render(<StadiumMap />);
+    
+    // Nothing should crash during mount when socket is null
+    expect(mockSocket.on).not.toHaveBeenCalled();
+    
+    // Restore the original mock implementation
+    vi.mocked(useSocket).mockImplementation(() => ({ socket: mockSocket, isConnected: true }));
   });
 
   it('cleans up socket listeners on unmount', async () => {

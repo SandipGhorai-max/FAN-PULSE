@@ -14,7 +14,7 @@ export function globalErrorHandler(err, req, res, next) {
   logger.error(`[API Error] ${req.method} ${req.originalUrl}:`, err);
 
   if (err instanceof AgentError) {
-    return res.status(err.status).json({
+    return res.status(err.statusCode).json({
       error: true,
       code: err.code,
       message: err.message,

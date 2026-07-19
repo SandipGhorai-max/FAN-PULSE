@@ -11,10 +11,10 @@ export class AgentError extends Error {
    * @param {string} code - Internal error code
    * @param {number} status - HTTP-like status code
    */
-  constructor(message, code = 'INTERNAL_ERROR', status = 500) {
+  constructor(message, code = 'INTERNAL_ERROR', statusCode = 500) {
     super(message);
     this.code = code;
-    this.status = status;
+    this.statusCode = statusCode;
     this.name = 'AgentError';
   }
 }
@@ -31,6 +31,7 @@ export function handleAgentError(err, agentName) {
     return {
       status: 'error',
       code: err.code,
+      statusCode: err.statusCode,
       message: err.message,
       agent: agentName,
     };
@@ -38,6 +39,7 @@ export function handleAgentError(err, agentName) {
   return {
     status: 'error',
     code: 'INTERNAL_ERROR',
+    statusCode: 500,
     message: `An unexpected error occurred while processing your request.`,
     agent: agentName,
   };

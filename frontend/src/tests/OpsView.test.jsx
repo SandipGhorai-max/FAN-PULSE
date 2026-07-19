@@ -2,6 +2,7 @@ import React from 'react';
 import { render, screen, fireEvent, act, waitFor } from '@testing-library/react';
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import OpsView from '../views/OpsView';
+import { useSocket } from '../context/SocketContext';
 
 // Create a controllable mock socket
 const mockSocket = {
@@ -19,7 +20,7 @@ vi.mock('../components/StadiumMap', () => ({
 // Mock the SocketContext to provide our controllable mock
 vi.mock('../context/SocketContext', () => ({
   SocketProvider: ({ children }) => children,
-  useSocket: () => ({ socket: mockSocket, isConnected: true }),
+  useSocket: vi.fn(() => ({ socket: mockSocket, isConnected: true })),
 }));
 
 describe('OpsView Component', () => {
@@ -39,7 +40,18 @@ describe('OpsView Component', () => {
           }),
         });
       }
-      if (url.includes('/api/alerts')) {
+      if (url.includes('/api/alerts/') && url.includes('/mitigate')) {
+        return Promise.resolve({
+          ok: true,
+          json: () => Promise.resolve({
+            options: [
+              { id: 'opt-1', label: 'Redirect crowd', description: 'Redirect to Gate B' },
+              { id: 'opt-2', label: 'Close gate', description: 'Close Gate A temporarily' },
+            ],
+          }),
+        });
+      }
+      if (url.endsWith('/api/alerts')) {
         return Promise.resolve({
           ok: true,
           json: () => Promise.resolve({
@@ -61,17 +73,7 @@ describe('OpsView Component', () => {
           json: () => Promise.resolve({ success: true }),
         });
       }
-      if (url.includes('/api/alerts/') && url.includes('/mitigate')) {
-        return Promise.resolve({
-          ok: true,
-          json: () => Promise.resolve({
-            options: [
-              { id: 'opt-1', label: 'Redirect crowd', description: 'Redirect to Gate B' },
-              { id: 'opt-2', label: 'Close gate', description: 'Close Gate A temporarily' },
-            ],
-          }),
-        });
-      }
+
       if (url.includes('/api/mitigation/select')) {
         return Promise.resolve({
           ok: true,
@@ -160,6 +162,33 @@ describe('OpsView Component', () => {
       expect(global.fetch).toHaveBeenCalledWith(
         expect.stringContaining('/api/alerts/alert-1/mitigate'),
         expect.objectContaining({ method: 'POST' })
+      );
+    });
+  });
+
+  it('handles select mitigation option button click', async () => {
+    render(<OpsView />);
+    
+    await waitFor(() => {
+      expect(screen.getByText('High density at Gate A')).toBeInTheDocument();
+    });
+
+    const mitigateBtn = screen.getByLabelText('Auto-Mitigate alert');
+    fireEvent.click(mitigateBtn);
+    
+    // Wait for the options to appear
+    const optionBtn = await screen.findByText('Redirect crowd');
+
+    // Click the specific option
+    fireEvent.click(optionBtn);
+    
+    await waitFor(() => {
+      expect(global.fetch).toHaveBeenCalledWith(
+        expect.stringContaining('/api/mitigation/select'),
+        expect.objectContaining({
+          method: 'POST',
+          body: expect.stringContaining('"optionId":"opt-1"')
+        })
       );
     });
   });
@@ -309,6 +338,154 @@ describe('OpsView Component', () => {
     expect(unregisteredEvents).toContain('demo:step');
     expect(unregisteredEvents).toContain('demo:completed');
     expect(unregisteredEvents).toContain('demo:reset');
+  });
+
+  it('handles null socket safely', () => {
+    vi.mocked(useSocket).mockImplementation(() => ({ socket: null, isConnected: false }));
+    render(<OpsView />);
+    
+    // Nothing should crash during mount when socket is null
+    expect(mockSocket.on).not.toHaveBeenCalled();
+    
+    // Restore the original mock implementation
+    vi.mocked(useSocket).mockImplementation(() => ({ socket: mockSocket, isConnected: true }));
+  });
+
+  it('handles startDemo error gracefully', async () => {
+    // First let the component mount normally
+    render(<OpsView />);
+    await waitFor(() => {
+      expect(screen.getByText('High density at Gate A')).toBeInTheDocument();
+    });
+
+    // Now override fetch to reject on demo endpoint
+    global.fetch = vi.fn().mockImplementation((url) => {
+      if (url.includes('/api/demo/crowd-surge')) return Promise.reject(new Error('Server down'));
+      return Promise.resolve({ ok: true, json: () => Promise.resolve({}) });
+    });
+
+    const demoBtn = screen.getByTitle('Start Crowd Surge Demo');
+    fireEvent.click(demoBtn);
+
+    // Should not throw - just silently catch
+    await waitFor(() => {
+      expect(screen.getByText('Ops Command Center')).toBeInTheDocument();
+    });
+  });
+
+  it('handles resetDemo error gracefully', async () => {
+    render(<OpsView />);
+    await waitFor(() => {
+      expect(screen.getByText('High density at Gate A')).toBeInTheDocument();
+    });
+
+    global.fetch = vi.fn().mockImplementation((url) => {
+      if (url.includes('/api/demo/reset')) return Promise.reject(new Error('Server down'));
+      return Promise.resolve({ ok: true, json: () => Promise.resolve({}) });
+    });
+
+    const resetBtn = screen.getByTitle('Reset Demo');
+    fireEvent.click(resetBtn);
+
+    // Should not throw
+    await waitFor(() => {
+      expect(screen.getByText('Ops Command Center')).toBeInTheDocument();
+    });
+  });
+
+  it('handles handleMitigate error gracefully', async () => {
+    render(<OpsView />);
+    await waitFor(() => {
+      expect(screen.getByText('High density at Gate A')).toBeInTheDocument();
+    });
+
+    global.fetch = vi.fn().mockImplementation((url) => {
+      if (url.includes('/mitigate')) return Promise.reject(new Error('Server down'));
+      return Promise.resolve({ ok: true, json: () => Promise.resolve({}) });
+    });
+
+    const mitigateBtn = screen.getByLabelText('Auto-Mitigate alert');
+    fireEvent.click(mitigateBtn);
+
+    // Should not throw
+    await waitFor(() => {
+      expect(screen.getByText('Ops Command Center')).toBeInTheDocument();
+    });
+  });
+
+  it('handles mitigation:options socket event', async () => {
+    render(<OpsView />);
+    await waitFor(() => {
+      expect(screen.getByText('High density at Gate A')).toBeInTheDocument();
+    });
+
+    const onCall = mockSocket.on.mock.calls.find(c => c[0] === 'mitigation:options');
+    const handler = onCall[1];
+
+    act(() => {
+      handler({ alertId: 'alert-1', options: [{ id: 'opt-x', label: 'Evacuate North Stand', description: 'Move fans out' }] });
+    });
+
+    await waitFor(() => {
+      expect(screen.getByText('Evacuate North Stand')).toBeInTheDocument();
+    });
+  });
+
+  it('handles demo:completed socket event', async () => {
+    render(<OpsView />);
+    await waitFor(() => {
+      expect(screen.getByText('High density at Gate A')).toBeInTheDocument();
+    });
+
+    const onCall = mockSocket.on.mock.calls.find(c => c[0] === 'demo:completed');
+    const handler = onCall[1];
+
+    global.fetch = vi.fn().mockImplementation(() =>
+      Promise.resolve({ ok: true, json: () => Promise.resolve({ alerts: [] }) })
+    );
+
+    act(() => {
+      handler({ message: 'Demo scenario completed successfully' });
+    });
+
+    await waitFor(() => {
+      expect(screen.getByText(/Demo Complete/)).toBeInTheDocument();
+    });
+  });
+
+  it('handles mitigation:selected socket event (no-op)', async () => {
+    render(<OpsView />);
+    await waitFor(() => {
+      expect(screen.getByText('High density at Gate A')).toBeInTheDocument();
+    });
+
+    const onCall = mockSocket.on.mock.calls.find(c => c[0] === 'mitigation:selected');
+    const handler = onCall[1];
+
+    // Just ensure it doesn't throw
+    act(() => {
+      handler({ optionId: 'opt-1' });
+    });
+
+    expect(screen.getByText('Ops Command Center')).toBeInTheDocument();
+  });
+
+  it('handles demo:started socket event', async () => {
+    render(<OpsView />);
+    await waitFor(() => {
+      expect(screen.getByText('High density at Gate A')).toBeInTheDocument();
+    });
+
+    const onCall = mockSocket.on.mock.calls.find(c => c[0] === 'demo:started');
+    const handler = onCall[1];
+
+    act(() => {
+      handler();
+    });
+
+    // Demo should be running now - the Demo button should be disabled
+    const demoBtn = screen.getByTitle('Start Crowd Surge Demo');
+    expect(demoBtn).toBeDisabled();
   });
 });
 
