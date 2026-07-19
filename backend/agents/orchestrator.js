@@ -7,10 +7,9 @@
 import { handleNavigationRequest } from './navigator.js';
 import { handleAccessRequest } from './accessCompanion.js';
 import { handleTransitRequest } from './transitCopilot.js';
-import { handleGreenRequest } from './greenOps.js';
-// handlePolyglotRequest was imported here
 import { handleOpsRequest } from './opsCommandCopilot.js';
 import { getDensityOverview, getActiveAlerts } from './crowdSentinel.js';
+import { scanTicket } from './visionCopilot.js';
 
 /**
  * System prompt — hardcoded and immutable. User text cannot override this.
@@ -67,10 +66,10 @@ Available agents and their intents:
 1. navigator: 'navigate' (finding routes to gates, sections, food)
 2. crowd_sentinel: 'check_density' (asking about crowds, queues, congestion)
 3. access_companion: 'accessible_route' (wheelchair access) or 'quiet_zones' (sensory quiet areas)
-4. transit_copilot: 'transit_info' (train, bus, uber, leaving stadium)
-5. green_ops: 'sustainability' (recycling, carbon footprint)
-6. polyglot: 'translate' (asking for translation or speaking in non-English)
-7. ops_copilot: 'dashboard' (staff/organizer asking for status or alerts)
+4. transit_copilot: 'transit_info' (train, bus, uber, leaving stadium, sustainability, carbon footprint)
+5. polyglot: 'translate' (asking for translation or speaking in non-English)
+6. ops_copilot: 'dashboard' (staff/organizer asking for status or alerts)
+7. vision_copilot: 'scan_ticket' (scanning a ticket, reading a ticket image, seat finder from ticket)
 8. general: 'help' (anything else)
 
 Respond strictly in JSON format matching this schema:
@@ -94,8 +93,9 @@ User request: "${text}"`;
     if (lower.match(/crowd|density|busy|full|surge|queue|wait/)) return { agent: 'crowd_sentinel', intent: 'check_density', params: {} };
     if (lower.match(/wheelchair|accessible|quiet|sensory|disability/)) return { agent: 'access_companion', intent: 'accessible_route', params: { type: lower.includes('quiet') ? 'quiet_zones' : 'facilities' } };
     if (lower.match(/transit|train|bus|uber|leave|parking|subway/)) return { agent: 'transit_copilot', intent: 'transit_info', params: {} };
-    if (lower.match(/green|recycle|carbon|sustainab/)) return { agent: 'green_ops', intent: 'sustainability', params: {} };
+    if (lower.match(/green|recycle|carbon|sustainab/)) return { agent: 'transit_copilot', intent: 'transit_info', params: { lowCarbon: true } };
     if (lower.match(/dashboard|stats|organizer/)) return { agent: 'ops_copilot', intent: 'dashboard', params: {} };
+    if (lower.match(/scan|ticket|scanned|barcode|qr/)) return { agent: 'vision_copilot', intent: 'scan_ticket', params: {} };
     return { agent: 'general', intent: 'help', params: {} };
   }
 }
@@ -242,22 +242,10 @@ async function dispatchToAgent(classification, context) {
       let response = '🚌 **Transit Options:**\n';
       response += transit.recommendation + '\n\n';
       response += transit.routes.slice(0, 4).map(r =>
-        `${getModeIcon(r.mode)} ${r.name} — ${r.adjusted_eta_minutes} min ${r.surge_level !== 'normal' ? `⚡ ${r.surge_level}` : ''}`
+        `${getModeIcon(r.mode)} ${r.name} — ${r.adjusted_eta_minutes} min ${r.surge_level !== 'normal' ? `⚡ ${r.surge_level}` : ''}${r.google_maps_url ? `\n   📍 [Open in Maps](${r.google_maps_url})` : ''}`
       ).join('\n');
 
       return { agent: 'transit_copilot', icon: '🚌', response, data: transit, type: 'transit' };
-    }
-
-    case 'green_ops': {
-      const green = await handleGreenRequest({ action: 'dashboard' });
-
-      return {
-        agent: 'green_ops',
-        icon: '🌱',
-        response: `🌱 **Sustainability Dashboard**\nGreen Score: ${green.overallScore}/100 🌍\n♻️ Recycling rate: ${green.metrics.waste_recycled_pct?.value || 0}%\n🚋 Fans using transit: ${green.metrics.fans_using_transit?.value?.toLocaleString() || 0}\n💨 Carbon saved: ${green.metrics.total_carbon_saved_kg?.value || 0}kg`,
-        data: green,
-        type: 'sustainability',
-      };
     }
 
     case 'polyglot': {
@@ -290,6 +278,27 @@ async function dispatchToAgent(classification, context) {
         response: `🧑‍✈️ **Ops Dashboard**\n👥 Total fans: ${ops.stats.totalFans.toLocaleString()} (${ops.stats.occupancyPct}%)\n🚨 Active alerts: ${ops.stats.activeAlerts}\n🔴 Critical zones: ${ops.stats.criticalZones}\n🟡 Warning zones: ${ops.stats.warningZones}`,
         data: ops,
         type: 'ops',
+      };
+    }
+
+    case 'vision_copilot': {
+      // Vision Copilot: ticket scanning via multimodal Gemini
+      const scanResult = await scanTicket(context.message);
+      if (scanResult.success) {
+        const d = scanResult.data;
+        return {
+          agent: 'vision_copilot',
+          icon: '👁️',
+          response: `👁️ **Ticket Scanned!**\n📍 Section ${d.section}, Row ${d.row}, Seat ${d.seat}\n🚪 Nearest Gate: ${d.nearestGate}\n🎫 Type: ${d.ticketHolderType}\n📊 Confidence: ${Math.round(d.confidenceScore * 100)}%\n\nUse the **Scan Ticket** button above the chat to upload your ticket image for precise routing!`,
+          data: scanResult.data,
+          type: 'vision',
+        };
+      }
+      return {
+        agent: 'vision_copilot',
+        icon: '👁️',
+        response: '👁️ To scan your ticket, use the **Scan Ticket** button above the chat and upload a photo of your ticket. I\'ll read it and guide you to your seat!',
+        type: 'vision',
       };
     }
 

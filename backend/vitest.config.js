@@ -17,6 +17,7 @@ export default defineConfig({
         'db/cloudSql.js',
         'middleware/googleCloudLogger.js',
         'server.js',
+        '*.config.js'
       ],
     },
     // Isolate each test file so the DB singleton is fresh per file

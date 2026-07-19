@@ -93,3 +93,18 @@ describe('Error Wrapper Utils', () => {
     expect(result).toBe('success');
   });
 });
+
+import { sanitizeText } from '../middleware/validation.js';
+
+describe('Validation Utils', () => {
+  it('sanitizeText should clean input strings', () => {
+    expect(sanitizeText(null)).toBe('');
+    expect(sanitizeText(123)).toBe('');
+    expect(sanitizeText('  hello  \n world  ')).toBe('hello world');
+    // Testing control characters strip (e.g. \x0B vertical tab)
+    expect(sanitizeText('hello\x0Bworld')).toBe('helloworld');
+    // Testing length limit
+    const longString = 'a'.repeat(3000);
+    expect(sanitizeText(longString).length).toBe(2000);
+  });
+});

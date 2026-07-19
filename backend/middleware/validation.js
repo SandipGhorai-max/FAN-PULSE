@@ -15,6 +15,11 @@ export const chatSchema = z.object({
   role: z.enum(['fan', 'volunteer', 'organizer']).optional().default('fan'),
 });
 
+/** Ticket scan schema */
+export const ticketScanSchema = z.object({
+  image: z.string().min(1, 'Image base64 string required')
+});
+
 /** Mitigation selection schema */
 export const mitigationSelectSchema = z.object({
   optionId: z.string().uuid('Invalid option ID'),

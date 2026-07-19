@@ -8,13 +8,12 @@ import { routeRequest } from '../agents/orchestrator.js';
 import { getDensityOverview, getActiveAlerts } from '../agents/crowdSentinel.js';
 import { handleNavigationRequest } from '../agents/navigator.js';
 import { handleTransitRequest } from '../agents/transitCopilot.js';
-import { handleGreenRequest } from '../agents/greenOps.js';
 import { handlePolyglotRequest } from '../agents/polyglotConcierge.js';
 import { handleOpsRequest, getOpsDashboard } from '../agents/opsCommandCopilot.js';
 import { handleAccessRequest } from '../agents/accessCompanion.js';
 import { scanTicket } from '../agents/visionCopilot.js';
 import { startCrowdSurgeDemo, selectDemoMitigation, getDemoState, resetDemo, stopDemo } from '../demo/crowdSurgeDemo.js';
-import { validate, chatSchema, mitigationSelectSchema, navigationSchema } from '../middleware/validation.js';
+import { validate, chatSchema, mitigationSelectSchema, navigationSchema, ticketScanSchema } from '../middleware/validation.js';
 import { configureChatRateLimit } from '../middleware/security.js';
 
 /**
@@ -75,16 +74,6 @@ export function createApiRouter(io) {
     }
   });
 
-  /* ─── SUSTAINABILITY ─── */
-  router.get('/sustainability', (req, res, next) => {
-    try {
-      const result = handleGreenRequest({ action: 'dashboard' });
-      res.json(result);
-    } catch (err) {
-      next(err);
-    }
-  });
-
   /* ─── ACCESSIBILITY ─── */
   router.get('/accessibility', (req, res, next) => {
     try {
@@ -135,11 +124,9 @@ export function createApiRouter(io) {
   });
 
   /* ─── VISION SCANNER ─── */
-  router.post('/vision/scan-ticket', async (req, res, next) => {
+  router.post('/vision/scan-ticket', validate(ticketScanSchema), async (req, res, next) => {
     try {
-      const { image } = req.body;
-      if (!image) return res.status(400).json({ error: true, message: 'image is required' });
-      const result = await scanTicket(image);
+      const result = await scanTicket(req.validated.image);
       res.json(result);
     } catch (err) {
       next(err);

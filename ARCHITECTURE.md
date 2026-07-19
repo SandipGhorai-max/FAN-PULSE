@@ -20,6 +20,7 @@ FanPulse AI utilizes a specialized squad of agents, each handling a distinct dom
 *   **Access Companion (`agents/accessCompanion.js`):** Specializes in accessibility, providing wheelchair-accessible routing and locating sensory-quiet zones for neurodivergent fans.
 *   **Transit Copilot (`agents/transitCopilot.js`):** Recommends transit options based on real-time crowd sizes at transit hubs, nudging fans toward less congested exit strategies.
 *   **GreenOps (`agents/greenOps.js`):** Promotes sustainability by calculating real-time carbon footprints and gamifying recycling efforts.
+*   **Vision Copilot (`agents/visionCopilot.js`):** Multimodal ticket scanning to navigate fans.
 
 ## 3. The Stadium Context Graph & GCP Infrastructure
 

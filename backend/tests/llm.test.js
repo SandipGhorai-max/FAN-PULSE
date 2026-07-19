@@ -102,8 +102,70 @@ describe('LLM Utility', () => {
       model: 'gemini-1.5-flash'
     }));
 
-    // test without prefix
     await llmModule.generateVisionContent('scan', '123');
+    expect(mockGenerateContent).toHaveBeenCalledTimes(2);
+  });
+
+  it('should throw if API key is missing', async () => {
+    delete process.env.LLM_API_KEY;
+    delete process.env.GEMINI_API_KEY;
+    const llmModule = await import('../utils/llm.js?update=5');
+    await expect(llmModule.generateContent('test')).rejects.toThrow('LLM_API_KEY is not configured.');
+    await expect(llmModule.generateVisionContent('test', 'test')).rejects.toThrow('LLM_API_KEY is not configured.');
+  });
+
+  it('should set responseMimeType when jsonMode is true', async () => {
+    const mockGenerateContent = vi.fn().mockResolvedValue({ text: '{"ok":true}' });
+    const { GoogleGenAI } = await import('@google/genai');
+    GoogleGenAI.mockImplementation(() => ({
+      models: { generateContent: mockGenerateContent }
+    }));
+    const llmModule = await import('../utils/llm.js?update=6');
+
+    await llmModule.generateContent('test', 'sys', true);
+    expect(mockGenerateContent).toHaveBeenCalledWith(expect.objectContaining({
+      config: expect.objectContaining({ responseMimeType: 'application/json' })
+    }));
+  });
+
+  it('should throw after all retries exhausted on retryable error', async () => {
+    const error500 = new Error('Server error');
+    error500.status = 500;
+    const mockGenerateContent = vi.fn().mockRejectedValue(error500);
+    const { GoogleGenAI } = await import('@google/genai');
+    GoogleGenAI.mockImplementation(() => ({
+      models: { generateContent: mockGenerateContent }
+    }));
+    const llmModule = await import('../utils/llm.js?update=7');
+
+    await expect(llmModule.generateContent('test')).rejects.toThrow('Server error');
+    expect(mockGenerateContent).toHaveBeenCalledTimes(3); // 3 retries
+  });
+
+  it('should throw on vision content error', async () => {
+    const mockGenerateContent = vi.fn().mockRejectedValue(new Error('Vision API down'));
+    const { GoogleGenAI } = await import('@google/genai');
+    GoogleGenAI.mockImplementation(() => ({
+      models: { generateContent: mockGenerateContent }
+    }));
+    const llmModule = await import('../utils/llm.js?update=8');
+
+    await expect(llmModule.generateVisionContent('scan', 'data:image/png;base64,abc')).rejects.toThrow('Vision API down');
+  });
+
+  it('should retry on fetch failed error', async () => {
+    const fetchError = new Error('fetch failed');
+    const mockGenerateContent = vi.fn()
+      .mockRejectedValueOnce(fetchError)
+      .mockResolvedValueOnce({ text: 'recovered' });
+    const { GoogleGenAI } = await import('@google/genai');
+    GoogleGenAI.mockImplementation(() => ({
+      models: { generateContent: mockGenerateContent }
+    }));
+    const llmModule = await import('../utils/llm.js?update=9');
+
+    const result = await llmModule.generateContent('test');
+    expect(result).toBe('recovered');
     expect(mockGenerateContent).toHaveBeenCalledTimes(2);
   });
 });
