@@ -152,9 +152,9 @@ export function getOpsDashboard() {
 
   const totalFans = db.prepare('SELECT SUM(current_occupancy) as total FROM zones').get();
   const totalCapacity = db.prepare('SELECT SUM(capacity) as total FROM zones').get();
-  const activeAlerts = db.prepare('SELECT COUNT(*) as count FROM alerts WHERE status = "active"').get();
-  const criticalZones = db.prepare('SELECT COUNT(*) as count FROM zones WHERE status = "critical"').get();
-  const warningZones = db.prepare('SELECT COUNT(*) as count FROM zones WHERE status = "warning"').get();
+  const activeAlerts = db.prepare("SELECT COUNT(*) as count FROM alerts WHERE status = 'active'").get();
+  const criticalZones = db.prepare("SELECT COUNT(*) as count FROM zones WHERE status = 'critical'").get();
+  const warningZones = db.prepare("SELECT COUNT(*) as count FROM zones WHERE status = 'warning'").get();
 
   const recentAlerts = db.prepare(`
     SELECT a.*, z.name as zone_name
