@@ -11,6 +11,7 @@ export default function OpsView() {
   const [metrics, setMetrics] = useState({ carbon: 0, transit: 0, recycling: 0, greenScore: 0 });
   const [demoRunning, setDemoRunning] = useState(false);
   const [demoStep, setDemoStep] = useState(null);
+  const [fetchError, setFetchError] = useState(null);
 
   useEffect(() => {
     // Fetch initial sustainability metrics
@@ -29,7 +30,10 @@ export default function OpsView() {
           greenScore: data.overallScore || 0,
         });
       })
-      .catch(err => console.error('Sustainability fetch error:', err));
+      .catch(err => {
+        console.error('Sustainability fetch error:', err);
+        setFetchError('Backend services unavailable');
+      });
 
     // Fetch initial alerts
     fetch(`${API_BASE}/api/alerts`)
@@ -38,7 +42,10 @@ export default function OpsView() {
         return res.json();
       })
       .then(data => setAlerts(data.alerts || []))
-      .catch(err => console.error('Alerts fetch error:', err));
+      .catch(err => {
+        console.error('Alerts fetch error:', err);
+        setFetchError('Backend services unavailable');
+      });
   }, []);
 
   useEffect(() => {
@@ -157,6 +164,11 @@ export default function OpsView() {
           <p className="text-muted text-sm">Real-time Density Monitoring & Mitigation</p>
         </div>
         <div className="flex items-center gap-3">
+          {fetchError && (
+            <div className="badge badge-critical text-xs" title="Connection Error">
+              {fetchError}
+            </div>
+          )}
           {/* Demo Controls */}
           <button
             onClick={startDemo}

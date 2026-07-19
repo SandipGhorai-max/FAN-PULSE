@@ -31,15 +31,30 @@ export async function generateContent(prompt, systemInstruction = '', jsonMode =
     config.responseMimeType = 'application/json';
   }
 
-  try {
-    const response = await ai.models.generateContent({
-      model: 'gemini-2.5-flash',
-      contents: prompt,
-      config,
-    });
-    return response.text;
-  } catch (err) {
-    console.error('LLM Generation Error:', err);
-    throw err;
+  let retries = 3;
+  let backoff = 1000;
+
+  while (retries > 0) {
+    try {
+      const response = await ai.models.generateContent({
+        model: 'gemini-2.5-flash',
+        contents: prompt,
+        config,
+      });
+      return response.text;
+    } catch (err) {
+      retries--;
+      // Check if error is retryable (rate limit or server error)
+      const isRetryable = err?.status === 429 || err?.status >= 500 || err?.message?.includes('fetch failed');
+      
+      if (retries === 0 || !isRetryable) {
+        console.error('LLM Generation Error:', err);
+        throw err;
+      }
+      
+      console.warn(`⚠️ LLM API Error (Retrying in ${backoff}ms): ${err.message}`);
+      await new Promise((resolve) => setTimeout(resolve, backoff));
+      backoff *= 2; // Exponential backoff
+    }
   }
 }

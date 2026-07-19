@@ -31,6 +31,18 @@ export function getDb() {
       dbInstance.exec('BEGIN IMMEDIATE');
       try {
         const result = fn(...args);
+        
+        // Handle async transaction functions
+        if (result instanceof Promise) {
+          return result.then((res) => {
+            dbInstance.exec('COMMIT');
+            return res;
+          }).catch((err) => {
+            dbInstance.exec('ROLLBACK');
+            throw err;
+          });
+        }
+        
         dbInstance.exec('COMMIT');
         return result;
       } catch (err) {

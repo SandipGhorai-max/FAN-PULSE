@@ -13,16 +13,19 @@ const STATUS_COLORS = {
 export default function StadiumMap({ onZoneSelect }) {
   const { socket, isConnected } = useSocket();
   const [zones, setZones] = useState([]);
+  const [fetchError, setFetchError] = useState(null);
 
   useEffect(() => {
     const fetchZones = async () => {
       try {
+        setFetchError(null);
         const res = await fetch(`${API_BASE}/api/zones`);
         if (!res.ok) throw new Error(`HTTP ${res.status}`);
         const data = await res.json();
         setZones(data.zones || []);
       } catch (err) {
         console.error('Failed to fetch zones:', err);
+        setFetchError('Connection failed');
       }
     };
 
@@ -153,9 +156,15 @@ export default function StadiumMap({ onZoneSelect }) {
         </g>
       </svg>
 
-      {!isConnected && (
+      {!isConnected && !fetchError && (
         <div className="absolute top-2 right-2 badge badge-warning">
           Connecting to live map...
+        </div>
+      )}
+      
+      {fetchError && (
+        <div className="absolute top-2 right-2 badge badge-critical">
+          Map Data Unavailable: {fetchError}
         </div>
       )}
     </div>
