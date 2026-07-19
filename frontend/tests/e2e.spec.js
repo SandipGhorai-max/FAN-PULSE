@@ -6,6 +6,6 @@ test('has title', async ({ page }) => {
 });
 
 test('fan view loads properly', async ({ page }) => {
-  await page.goto('/fan');
+  await page.goto('/');
   await expect(page.locator('.fan-view-container')).toBeVisible();
 });

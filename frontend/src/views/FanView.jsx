@@ -65,7 +65,7 @@ export default function FanView() {
   };
 
   return (
-    <div className="animate-fade-in flex-col gap-6" style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
+    <div className="fan-view-container animate-fade-in flex-col gap-6" style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
       {/* FIFA World Cup Hero Section */}
       <HeroSection />
 
