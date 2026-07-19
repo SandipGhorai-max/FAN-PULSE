@@ -94,4 +94,15 @@ describe('API Routes', () => {
     const res = await request(app).post('/api/demo/stop');
     expect(res.status).toBe(200);
   });
+
+  it('POST /api/vision/scan-ticket should process image', async () => {
+    // Missing image
+    const resErr = await request(app).post('/api/vision/scan-ticket').send({});
+    expect(resErr.status).toBe(400);
+
+    // Valid dummy image
+    const resValid = await request(app).post('/api/vision/scan-ticket').send({ image: 'data:image/jpeg;base64,123' });
+    expect(resValid.status).toBe(200);
+    expect(resValid.body.success).toBeDefined();
+  });
 });

@@ -86,4 +86,24 @@ describe('LLM Utility', () => {
     await expect(llmModule.generateContent('Fail test')).rejects.toThrow('Bad request');
     expect(mockGenerateContent).toHaveBeenCalledTimes(1);
   });
+
+  it('should generate vision content', async () => {
+    const mockGenerateContent = vi.fn().mockResolvedValue({ text: '{"success":true}' });
+    const { GoogleGenAI } = await import('@google/genai');
+    GoogleGenAI.mockImplementation(() => ({
+      models: { generateContent: mockGenerateContent }
+    }));
+    const llmModule = await import('../utils/llm.js?update=4');
+
+    const result = await llmModule.generateVisionContent('scan', 'data:image/jpeg;base64,123');
+    expect(result).toBe('{"success":true}');
+    expect(mockGenerateContent).toHaveBeenCalledTimes(1);
+    expect(mockGenerateContent).toHaveBeenCalledWith(expect.objectContaining({
+      model: 'gemini-1.5-flash'
+    }));
+
+    // test without prefix
+    await llmModule.generateVisionContent('scan', '123');
+    expect(mockGenerateContent).toHaveBeenCalledTimes(2);
+  });
 });

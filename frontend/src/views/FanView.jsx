@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { useSocket } from '../context/SocketContext';
 import StadiumMap from '../components/StadiumMap';
 import HeroSection from '../components/HeroSection';
+import TicketScanner from '../components/TicketScanner';
 import { Send, MapPin, Loader } from 'lucide-react';
 
 export default function FanView() {
@@ -64,6 +65,19 @@ export default function FanView() {
     setInput(`How do I get to ${zone.name}?`);
   };
 
+  const handleTicketScanned = (ticketData) => {
+    const { section, row, seat, nearestGate } = ticketData;
+    const msg = `I just scanned my ticket! I am sitting in Section ${section}, Row ${row}, Seat ${seat}. ${nearestGate ? `It looks like I should enter through ${nearestGate}. ` : ''}How do I get there?`;
+    
+    // Simulate sending the message automatically
+    setMessages(prev => [...prev, { role: 'user', content: msg }]);
+    setIsLoading(true);
+    socket.emit('chat:message', {
+      text: msg,
+      context: { userId: 'fan-123', role: 'fan', location: 'gate-a' }
+    });
+  };
+
   return (
     <div className="fan-view-container animate-fade-in flex-col gap-6" style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
       {/* FIFA World Cup Hero Section */}
@@ -89,10 +103,13 @@ export default function FanView() {
         </div>
         
         <div className="col-span-4 chat-container h-[500px]">
-          <h3 className="font-medium mb-4 flex items-center gap-2">
-            <span className="w-2 h-2 rounded-full bg-blue-500 animate-pulse"></span>
-            FanPulse Assistant
-          </h3>
+          <div className="flex justify-between items-center mb-4">
+            <h3 className="font-medium flex items-center gap-2">
+              <span className="w-2 h-2 rounded-full bg-blue-500 animate-pulse"></span>
+              FanPulse Assistant
+            </h3>
+            <TicketScanner onScanSuccess={handleTicketScanned} />
+          </div>
           
           <div className="chat-messages glass-panel flex-1 mb-4" aria-live="polite" aria-atomic="false">
             {messages.map((msg, i) => (

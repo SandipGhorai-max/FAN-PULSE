@@ -29,6 +29,7 @@ describe('Transit Copilot Agent', () => {
     // 20 * 1.8 = 36
     expect(t1.adjusted_eta_minutes).toBe(36);
     expect(t1.surge_delay_minutes).toBe(16);
+    expect(t1.google_maps_url).toContain('https://www.google.com/maps/dir/?api=1');
   });
 
   it('recommends route based on lowCarbon preference', () => {

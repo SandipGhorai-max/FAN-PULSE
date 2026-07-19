@@ -58,6 +58,7 @@ export function getRecommendedRoutes(prefs = {}) {
       ...route,
       adjusted_eta_minutes: Math.round(route.eta_minutes * surgeMultiplier),
       surge_delay_minutes: Math.round(route.eta_minutes * (surgeMultiplier - 1)),
+      google_maps_url: `https://www.google.com/maps/dir/?api=1&origin=${encodeURIComponent(route.from_location)}&destination=${encodeURIComponent(route.to_location)}&travelmode=${route.mode === 'train' ? 'transit' : route.mode === 'bus' ? 'transit' : 'driving'}`
     };
   });
 

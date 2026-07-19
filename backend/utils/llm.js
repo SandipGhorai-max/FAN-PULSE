@@ -58,3 +58,58 @@ export async function generateContent(prompt, systemInstruction = '', jsonMode =
     }
   }
 }
+
+/**
+ * Generate a response using Gemini Vision model.
+ * @param {string} prompt - The text prompt
+ * @param {string} base64Image - The base64 encoded image string (with or without data URI prefix)
+ * @param {string} systemInstruction - The system instruction
+ * @returns {Promise<string>} The response text (JSON string)
+ */
+export async function generateVisionContent(prompt, base64Image, systemInstruction = '') {
+  if (!ai) {
+    throw new Error('LLM_API_KEY is not configured.');
+  }
+
+  // Strip prefix if present (e.g., "data:image/jpeg;base64,")
+  let cleanBase64 = base64Image;
+  let mimeType = 'image/jpeg';
+  if (base64Image.startsWith('data:')) {
+    const parts = base64Image.split(';');
+    mimeType = parts[0].split(':')[1];
+    cleanBase64 = parts[1].replace('base64,', '');
+  }
+
+  const config = {
+    systemInstruction,
+    temperature: 0.1,
+    responseMimeType: 'application/json',
+  };
+
+  const contents = [
+    {
+      role: 'user',
+      parts: [
+        { text: prompt },
+        {
+          inlineData: {
+            data: cleanBase64,
+            mimeType: mimeType
+          }
+        }
+      ]
+    }
+  ];
+
+  try {
+    const response = await ai.models.generateContent({
+      model: 'gemini-1.5-flash',
+      contents: contents,
+      config,
+    });
+    return response.text;
+  } catch (err) {
+    console.error('LLM Vision Error:', err);
+    throw err;
+  }
+}
