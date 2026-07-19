@@ -109,14 +109,15 @@ export default function FanView() {
           </div>
           
           <form onSubmit={sendMessage} className="flex gap-2" aria-label="Chat input form">
+            <label htmlFor="chat-input" className="sr-only" style={{ position: 'absolute', width: '1px', height: '1px', padding: 0, margin: '-1px', overflow: 'hidden', clip: 'rect(0, 0, 0, 0)', whiteSpace: 'nowrap', border: 0 }}>Message assistant</label>
             <input 
+              id="chat-input"
               type="text" 
               className="input-field" 
               placeholder="Ask for directions or info..." 
               value={input}
               onChange={(e) => setInput(e.target.value)}
               disabled={isLoading || !isConnected}
-              aria-label="Message input"
             />
             <button 
               type="submit" 

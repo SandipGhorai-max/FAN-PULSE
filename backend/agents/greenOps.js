@@ -1,4 +1,3 @@
-import { withErrorHandling, AgentError } from '../utils/errorWrapper.js';
 /**
  * @module agents/greenOps
  * @description 🌱 GreenOps Agent — Sustainability nudges + carbon tracking.

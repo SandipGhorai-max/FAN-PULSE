@@ -1,4 +1,3 @@
-import { withErrorHandling, AgentError } from '../utils/errorWrapper.js';
 /**
  * @module agents/crowdSentinel
  * @description 👁️ Crowd Sentinel Agent — Predicts and detects crowd surges.

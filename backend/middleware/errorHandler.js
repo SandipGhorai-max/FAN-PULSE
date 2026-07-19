@@ -7,6 +7,7 @@ import { AgentError } from '../utils/errorWrapper.js';
  * @param {import('express').Response} res - Express response
  * @param {import('express').NextFunction} next - Express next function
  */
+// eslint-disable-next-line no-unused-vars
 export function globalErrorHandler(err, req, res, next) {
   console.error(`[API Error] ${req.method} ${req.originalUrl}:`, err);
 

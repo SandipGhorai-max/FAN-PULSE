@@ -21,9 +21,16 @@ FanPulse AI utilizes a specialized squad of agents, each handling a distinct dom
 *   **Transit Copilot (`agents/transitCopilot.js`):** Recommends transit options based on real-time crowd sizes at transit hubs, nudging fans toward less congested exit strategies.
 *   **GreenOps (`agents/greenOps.js`):** Promotes sustainability by calculating real-time carbon footprints and gamifying recycling efforts.
 
-## 3. The Stadium Context Graph
+## 3. The Stadium Context Graph & GCP Infrastructure
 
-The "Context Graph" is the shared brain of FanPulse AI, implemented as an SQLite database (`db/schema.js`). It allows one agent's action (like closing a gate) to instantly affect another agent's logic (like routing fans).
+The "Context Graph" is the shared brain of FanPulse AI, implemented as a relational database (Cloud SQL PostgreSQL in production, falling back to SQLite for local development). It allows one agent's action (like closing a gate) to instantly affect another agent's logic (like routing fans).
+
+### GCP Production Infrastructure
+To handle the scale of the World Cup, the backend is fully integrated with Google Cloud Platform:
+- **Compute:** Deployed to **Cloud Run** (`Dockerfile` and `cloudbuild.yaml` provided) for autoscaling stateless containers.
+- **Database:** **Cloud SQL** connection pool (`db/cloudSql.js`) manages the Stadium Context Graph.
+- **Observability:** **Cloud Logging** integration (`middleware/googleCloudLogger.js` via `@google-cloud/logging-winston`) captures structured telemetry for every request.
+- **Security:** API keys and credentials are injected securely via **Secret Manager** during the Cloud Build process.
 
 ### Core Schema
 

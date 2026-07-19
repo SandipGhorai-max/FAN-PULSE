@@ -1,4 +1,3 @@
-import { withErrorHandling, AgentError } from '../utils/errorWrapper.js';
 /**
  * @module agents/polyglotConcierge
  * @description 🌍 Polyglot Concierge Agent — Real-time translation in 5+ languages.

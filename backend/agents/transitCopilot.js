@@ -1,4 +1,3 @@
-import { withErrorHandling, AgentError } from '../utils/errorWrapper.js';
 /**
  * @module agents/transitCopilot
  * @description 🚌 Transit Copilot Agent — Multi-modal trip planning, surge-aware.

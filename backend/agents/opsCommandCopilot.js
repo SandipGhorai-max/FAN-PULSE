@@ -1,4 +1,3 @@
-import { withErrorHandling, AgentError } from '../utils/errorWrapper.js';
 /**
  * @module agents/opsCommandCopilot
  * @description 🧑‍✈️ Ops Command Copilot — Fuses agent data into live decisions for staff.

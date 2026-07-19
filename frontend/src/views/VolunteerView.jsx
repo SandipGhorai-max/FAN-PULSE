@@ -59,8 +59,8 @@ export default function VolunteerView() {
           
           <form onSubmit={submitReport} className="flex flex-col gap-4">
             <div>
-              <label className="text-sm text-muted mb-1 block">Location</label>
-              <select className="input-field" value={location} onChange={e => setLocation(e.target.value)} required>
+              <label htmlFor="report-location" className="text-sm text-muted mb-1 block">Location</label>
+              <select id="report-location" className="input-field" value={location} onChange={e => setLocation(e.target.value)} required>
                 <option value="">Select Zone...</option>
                 <option value="gate-a">Gate A</option>
                 <option value="gate-b">Gate B</option>
@@ -71,8 +71,8 @@ export default function VolunteerView() {
             </div>
             
             <div>
-              <label className="text-sm text-muted mb-1 block">Severity</label>
-              <select className="input-field" value={severity} onChange={e => setSeverity(e.target.value)}>
+              <label htmlFor="report-severity" className="text-sm text-muted mb-1 block">Severity</label>
+              <select id="report-severity" className="input-field" value={severity} onChange={e => setSeverity(e.target.value)}>
                 <option value="info">Info</option>
                 <option value="warning">Warning</option>
                 <option value="critical">Critical</option>
@@ -80,8 +80,9 @@ export default function VolunteerView() {
             </div>
             
             <div>
-              <label className="text-sm text-muted mb-1 block">Description</label>
+              <label htmlFor="report-description" className="text-sm text-muted mb-1 block">Description</label>
               <textarea 
+                id="report-description"
                 className="input-field" 
                 rows="4" 
                 placeholder="Describe the incident (e.g. huge crowd forming, spill on the floor)..."
@@ -107,7 +108,7 @@ export default function VolunteerView() {
             Live Broadcasts (Polyglot)
           </h3>
           
-          <div className="flex-col gap-4 overflow-y-auto pr-2 flex-1">
+          <div className="flex-col gap-4 overflow-y-auto pr-2 flex-1" aria-live="polite" aria-atomic="false">
             {broadcasts.length === 0 ? (
               <p className="text-muted text-sm text-center mt-10">No recent broadcasts</p>
             ) : (

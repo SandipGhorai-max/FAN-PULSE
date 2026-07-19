@@ -1,4 +1,3 @@
-import { withErrorHandling, AgentError } from '../utils/errorWrapper.js';
 /**
  * @module agents/accessCompanion
  * @description ♿ Access Companion Agent — Accessible routing + sensory-quiet zones.

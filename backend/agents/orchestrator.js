@@ -1,4 +1,3 @@
-import { withErrorHandling, AgentError } from '../utils/errorWrapper.js';
 /**
  * @module agents/orchestrator
  * @description 🧠 Orchestrator LLM — Routes fan/volunteer/organizer requests to specialist agents.

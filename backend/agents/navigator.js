@@ -1,4 +1,3 @@
-import { withErrorHandling, AgentError } from '../utils/errorWrapper.js';
 /**
  * @module agents/navigator
  * @description 🧭 Navigator Agent — Routes fans to gates/seats via shortest path.
