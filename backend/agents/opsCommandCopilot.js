@@ -1,3 +1,4 @@
+import { withErrorHandling, AgentError } from '../utils/errorWrapper.js';
 /**
  * @module agents/opsCommandCopilot
  * @description 🧑‍✈️ Ops Command Copilot — Fuses agent data into live decisions for staff.
@@ -11,6 +12,7 @@ import { v4 as uuidv4 } from 'uuid';
  * Generates mitigation options for a critical alert.
  * @param {string} alertId - The alert to mitigate
  * @returns {Promise<object>} Mitigation options with descriptions
+  * @sideEffects Context Graph: None (Read-only by default, unless otherwise specified)
  */
 export async function generateMitigationOptions(alertId) {
   const db = getDb();
@@ -52,6 +54,7 @@ import { generateContent } from '../utils/llm.js';
  * Gets mitigation strategies based on alert type and location using Gemini.
  * @param {object} alert - The alert object
  * @returns {Promise<Array<{label: string, description: string, impact: string, action_type: string}>>}
+  * @sideEffects Context Graph: None (Read-only by default, unless otherwise specified)
  */
 async function getMitigationStrategies(alert) {
   const db = getDb();
@@ -108,6 +111,7 @@ Return STRICTLY in JSON format as an array of objects:
  * @param {string} optionId - The mitigation option ID
  * @param {string} selectedBy - Who selected it
  * @returns {object} Updated mitigation action
+  * @sideEffects Context Graph: None (Read-only by default, unless otherwise specified)
  */
 export function selectMitigationOption(optionId, selectedBy = 'ops_organizer') {
   const db = getDb();
@@ -142,6 +146,7 @@ export function selectMitigationOption(optionId, selectedBy = 'ops_organizer') {
 /**
  * Gets comprehensive ops dashboard data.
  * @returns {object} Dashboard data with stats, alerts, actions
+  * @sideEffects Context Graph: None (Read-only by default, unless otherwise specified)
  */
 export function getOpsDashboard() {
   const db = getDb();
@@ -184,6 +189,7 @@ export function getOpsDashboard() {
  * Handles an ops command request from the orchestrator.
  * @param {{ action: string, alertId?: string, optionId?: string }} request
  * @returns {Promise<object>} Ops response
+  * @sideEffects Context Graph: None (Read-only by default, unless otherwise specified)
  */
 export async function handleOpsRequest(request) {
   const { action = 'dashboard', alertId, optionId, selectedBy } = request;

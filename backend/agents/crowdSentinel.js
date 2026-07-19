@@ -1,3 +1,4 @@
+import { withErrorHandling, AgentError } from '../utils/errorWrapper.js';
 /**
  * @module agents/crowdSentinel
  * @description 👁️ Crowd Sentinel Agent — Predicts and detects crowd surges.
@@ -7,7 +8,8 @@
 import { getDb } from '../db/schema.js';
 import { v4 as uuidv4 } from 'uuid';
 
-/** Density thresholds for alert levels */
+/** Density thresholds for alert levels  * @sideEffects Context Graph: None (Read-only by default, unless otherwise specified)
+ */
 const THRESHOLDS = {
   WARNING: 0.80,
   CRITICAL: 0.90,
@@ -20,6 +22,7 @@ const THRESHOLDS = {
  * @param {number} density - Density as fraction of capacity (0.0–1.0)
  * @param {number} [temperature] - Optional temperature in Celsius
  * @returns {{ alert: object | null, reading: object }} The reading and any triggered alert
+  * @sideEffects Context Graph: None (Read-only by default, unless otherwise specified)
  */
 export function recordDensityReading(zoneId, density, temperature = null) {
   const db = getDb();
@@ -73,6 +76,7 @@ export function recordDensityReading(zoneId, density, temperature = null) {
  * @param {string} zoneId
  * @param {string} zoneName
  * @returns {object | null} Alert if spike detected
+  * @sideEffects Context Graph: None (Read-only by default, unless otherwise specified)
  */
 function checkPredictiveSpike(db, zoneId, zoneName) {
   const readings = db.prepare(`
@@ -104,6 +108,7 @@ function checkPredictiveSpike(db, zoneId, zoneName) {
  * @param {'info'|'warning'|'critical'} severity
  * @param {string} message
  * @returns {object} The created alert
+  * @sideEffects Context Graph: None (Read-only by default, unless otherwise specified)
  */
 function createAlert(db, zoneId, severity, message) {
   const id = uuidv4();
@@ -134,6 +139,7 @@ function createAlert(db, zoneId, severity, message) {
 /**
  * Gets all active alerts.
  * @returns {object[]} Active alerts sorted by severity (critical first)
+  * @sideEffects Context Graph: None (Read-only by default, unless otherwise specified)
  */
 export function getActiveAlerts() {
   const db = getDb();
@@ -151,6 +157,7 @@ export function getActiveAlerts() {
 /**
  * Gets current density overview for all zones.
  * @returns {object[]} Zone density data
+  * @sideEffects Context Graph: None (Read-only by default, unless otherwise specified)
  */
 export function getDensityOverview() {
   const db = getDb();
@@ -166,6 +173,7 @@ export function getDensityOverview() {
  * Resolves an alert (marks it as resolved).
  * @param {string} alertId - Alert ID
  * @param {string} resolvedBy - Who resolved it
+  * @sideEffects Context Graph: None (Read-only by default, unless otherwise specified)
  */
 export function resolveAlert(alertId, resolvedBy = 'system') {
   const db = getDb();

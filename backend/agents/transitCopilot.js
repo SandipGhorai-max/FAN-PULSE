@@ -1,3 +1,4 @@
+import { withErrorHandling, AgentError } from '../utils/errorWrapper.js';
 /**
  * @module agents/transitCopilot
  * @description 🚌 Transit Copilot Agent — Multi-modal trip planning, surge-aware.
@@ -9,6 +10,7 @@ import { getDb } from '../db/schema.js';
 /**
  * Gets all transit routes with current conditions.
  * @returns {object[]} Transit routes sorted by ETA
+  * @sideEffects Context Graph: None (Read-only by default, unless otherwise specified)
  */
 export function getAllRoutes() {
   const db = getDb();
@@ -21,6 +23,7 @@ export function getAllRoutes() {
  * Gets recommended routes based on preferences.
  * @param {{ from?: string, accessible?: boolean, lowCarbon?: boolean }} prefs
  * @returns {object} Recommended routes with reasoning
+  * @sideEffects Context Graph: None (Read-only by default, unless otherwise specified)
  */
 export function getRecommendedRoutes(prefs = {}) {
   const db = getDb();
@@ -79,6 +82,7 @@ export function getRecommendedRoutes(prefs = {}) {
  * Updates surge level for a transit route.
  * @param {string} routeId - Transit route ID
  * @param {'normal'|'busy'|'surge'} surgeLevel - New surge level
+  * @sideEffects Context Graph: None (Read-only by default, unless otherwise specified)
  */
 export function updateSurgeLevel(routeId, surgeLevel) {
   const db = getDb();
@@ -90,6 +94,7 @@ export function updateSurgeLevel(routeId, surgeLevel) {
  * Gets optimal departure recommendation.
  * @param {string} matchTime - Match start time (ISO string)
  * @returns {object} Departure recommendation
+  * @sideEffects Context Graph: None (Read-only by default, unless otherwise specified)
  */
 export function getDepartureRecommendation(matchTime = '19:00') {
   const routes = getAllRoutes();
@@ -107,6 +112,7 @@ export function getDepartureRecommendation(matchTime = '19:00') {
  * Handles a transit request from the orchestrator.
  * @param {{ action: string, from?: string, accessible?: boolean, lowCarbon?: boolean }} request
  * @returns {object} Transit response
+  * @sideEffects Context Graph: None (Read-only by default, unless otherwise specified)
  */
 export function handleTransitRequest(request) {
   const { action = 'recommend', from, accessible, lowCarbon } = request;

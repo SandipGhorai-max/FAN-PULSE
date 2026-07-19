@@ -26,133 +26,121 @@ export function createApiRouter(io) {
   const router = Router();
 
   /* ─── CHAT (Orchestrator) ─── */
-  router.post('/chat', configureChatRateLimit(), validate(chatSchema), async (req, res) => {
+  router.post('/chat', configureChatRateLimit(), validate(chatSchema), async (req, res, next) => {
     try {
       const result = await routeRequest(req.validated);
       res.json(result);
     } catch (err) {
-      console.error('Chat error:', err);
-      res.status(500).json({ error: 'Internal server error' });
+      next(err);
     }
   });
 
   /* ─── ZONES ─── */
-  router.get('/zones', (req, res) => {
+  router.get('/zones', (req, res, next) => {
     try {
       const zones = getDensityOverview();
       res.json({ zones });
     } catch (err) {
-      console.error('Zones error:', err);
-      res.status(500).json({ error: 'Failed to fetch zones' });
+      next(err);
     }
   });
 
   /* ─── ALERTS ─── */
-  router.get('/alerts', (req, res) => {
+  router.get('/alerts', (req, res, next) => {
     try {
       const alerts = getActiveAlerts();
       res.json({ alerts });
     } catch (err) {
-      console.error('Alerts error:', err);
-      res.status(500).json({ error: 'Failed to fetch alerts' });
+      next(err);
     }
   });
 
   /* ─── NAVIGATION ─── */
-  router.post('/navigate', validate(navigationSchema), (req, res) => {
+  router.post('/navigate', validate(navigationSchema), (req, res, next) => {
     try {
       const result = handleNavigationRequest(req.validated);
       res.json(result);
     } catch (err) {
-      console.error('Navigation error:', err);
-      res.status(500).json({ error: 'Navigation failed' });
+      next(err);
     }
   });
 
   /* ─── TRANSIT ─── */
-  router.get('/transit', (req, res) => {
+  router.get('/transit', (req, res, next) => {
     try {
       const result = handleTransitRequest({ action: 'recommend', lowCarbon: req.query.green === 'true' });
       res.json(result);
     } catch (err) {
-      console.error('Transit error:', err);
-      res.status(500).json({ error: 'Failed to fetch transit info' });
+      next(err);
     }
   });
 
   /* ─── SUSTAINABILITY ─── */
-  router.get('/sustainability', (req, res) => {
+  router.get('/sustainability', (req, res, next) => {
     try {
       const result = handleGreenRequest({ action: 'dashboard' });
       res.json(result);
     } catch (err) {
-      console.error('Sustainability error:', err);
-      res.status(500).json({ error: 'Failed to fetch sustainability data' });
+      next(err);
     }
   });
 
   /* ─── ACCESSIBILITY ─── */
-  router.get('/accessibility', (req, res) => {
+  router.get('/accessibility', (req, res, next) => {
     try {
       const result = handleAccessRequest({ type: req.query.type || 'facilities' });
       res.json(result);
     } catch (err) {
-      console.error('Accessibility error:', err);
-      res.status(500).json({ error: 'Failed to fetch accessibility data' });
+      next(err);
     }
   });
 
   /* ─── PA ANNOUNCEMENTS ─── */
-  router.get('/pa-announcements', async (req, res) => {
+  router.get('/pa-announcements', async (req, res, next) => {
     try {
       const result = await handlePolyglotRequest({ action: 'recent' });
       res.json(result);
     } catch (err) {
-      console.error('PA error:', err);
-      res.status(500).json({ error: 'Failed to fetch announcements' });
+      next(err);
     }
   });
 
   /* ─── OPS DASHBOARD ─── */
-  router.get('/ops/dashboard', async (req, res) => {
+  router.get('/ops/dashboard', async (req, res, next) => {
     try {
       const result = await getOpsDashboard();
       res.json(result);
     } catch (err) {
-      console.error('Ops error:', err);
-      res.status(500).json({ error: 'Failed to fetch ops dashboard' });
+      next(err);
     }
   });
 
   /* ─── MITIGATION ─── */
-  router.post('/alerts/:alertId/mitigate', async (req, res) => {
+  router.post('/alerts/:alertId/mitigate', async (req, res, next) => {
     try {
       const result = await handleOpsRequest({ action: 'mitigate', alertId: req.params.alertId });
       res.json(result);
     } catch (err) {
-      console.error('Mitigation error:', err);
-      res.status(500).json({ error: 'Failed to generate mitigation options' });
+      next(err);
     }
   });
 
-  router.post('/mitigation/select', validate(mitigationSelectSchema), (req, res) => {
+  router.post('/mitigation/select', validate(mitigationSelectSchema), (req, res, next) => {
     try {
       const result = selectDemoMitigation(req.validated.optionId, io);
       res.json(result);
     } catch (err) {
-      console.error('Selection error:', err);
-      res.status(500).json({ error: 'Failed to select mitigation' });
+      next(err);
     }
   });
 
   /* ─── DEMO ─── */
-  router.post('/demo/crowd-surge', (req, res) => {
+  router.post('/demo/crowd-surge', (req, res, next) => {
     try {
       const result = startCrowdSurgeDemo(io);
       res.json(result);
     } catch (err) {
-      console.error('Demo error:', err);
-      res.status(500).json({ error: 'Failed to start demo' });
+      next(err);
     }
   });
 
@@ -160,14 +148,13 @@ export function createApiRouter(io) {
     res.json(getDemoState());
   });
 
-  router.post('/demo/reset', (req, res) => {
+  router.post('/demo/reset', (req, res, next) => {
     try {
       resetDemo();
       io.emit('demo:reset', { message: 'Demo reset.' });
       res.json({ success: true, message: 'Demo reset successfully' });
     } catch (err) {
-      console.error('Reset error:', err);
-      res.status(500).json({ error: 'Failed to reset demo' });
+      next(err);
     }
   });
 

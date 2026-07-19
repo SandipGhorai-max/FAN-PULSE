@@ -1,3 +1,4 @@
+import { withErrorHandling, AgentError } from '../utils/errorWrapper.js';
 /**
  * @module agents/navigator
  * @description 🧭 Navigator Agent — Routes fans to gates/seats via shortest path.
@@ -9,6 +10,7 @@ import { getDb } from '../db/schema.js';
 /**
  * Builds the adjacency graph from zone_connections, weighted by distance × congestion.
  * @returns {Map<string, Array<{to: string, weight: number}>>} Adjacency list
+  * @sideEffects Context Graph: None (Read-only by default, unless otherwise specified)
  */
 export function buildGraph() {
   const db = getDb();
@@ -43,6 +45,7 @@ export function buildGraph() {
  * @param {object} [options] - Options
  * @param {boolean} [options.accessibleOnly] - Only use accessible paths
  * @returns {{ path: string[], distance: number, zones: object[] } | null}
+  * @sideEffects Context Graph: None (Read-only by default, unless otherwise specified)
  */
 export function findShortestPath(startId, endId, options = {}) {
   const db = getDb();
@@ -141,6 +144,7 @@ export function findShortestPath(startId, endId, options = {}) {
  * Processes a navigation request from a fan.
  * @param {{ from: string, to: string, accessible?: boolean }} request
  * @returns {object} Navigation response with path and directions
+  * @sideEffects Context Graph: None (Read-only by default, unless otherwise specified)
  */
 export function handleNavigationRequest(request) {
   const { from, to, accessible = false } = request;
@@ -187,6 +191,7 @@ export function handleNavigationRequest(request) {
  * Gets reroute suggestions when a zone becomes congested.
  * @param {string} congestedZoneId - The zone to avoid
  * @returns {object[]} Alternative routes for affected fans
+  * @sideEffects Context Graph: None (Read-only by default, unless otherwise specified)
  */
 export function getRerouteSuggestions(congestedZoneId) {
   const db = getDb();

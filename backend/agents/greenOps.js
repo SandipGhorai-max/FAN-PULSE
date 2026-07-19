@@ -1,3 +1,4 @@
+import { withErrorHandling, AgentError } from '../utils/errorWrapper.js';
 /**
  * @module agents/greenOps
  * @description 🌱 GreenOps Agent — Sustainability nudges + carbon tracking.
@@ -9,6 +10,7 @@ import { getDb } from '../db/schema.js';
 /**
  * Gets current sustainability dashboard metrics.
  * @returns {object} Aggregated sustainability data
+  * @sideEffects Context Graph: None (Read-only by default, unless otherwise specified)
  */
 export function getSustainabilityDashboard() {
   const db = getDb();
@@ -46,6 +48,7 @@ export function getSustainabilityDashboard() {
  * Calculates a 0–100 green score based on current metrics.
  * @param {object[]} metrics - Current sustainability metrics
  * @returns {number} Green score
+  * @sideEffects Context Graph: None (Read-only by default, unless otherwise specified)
  */
 function calculateGreenScore(metrics) {
   const metricMap = Object.fromEntries(metrics.map(m => [m.metric_type, m.value]));
@@ -62,6 +65,7 @@ function calculateGreenScore(metrics) {
  * Generates a sustainability nudge for a fan based on their transit choice.
  * @param {string} transitMode - The transit mode being considered
  * @returns {object} Nudge message with carbon comparison
+  * @sideEffects Context Graph: None (Read-only by default, unless otherwise specified)
  */
 export function generateNudge(transitMode) {
   const db = getDb();
@@ -100,6 +104,7 @@ export function generateNudge(transitMode) {
  * @param {number} value - Value to record
  * @param {string} unit - Unit of measurement
  * @param {string} [zoneId] - Optional zone
+  * @sideEffects Context Graph: None (Read-only by default, unless otherwise specified)
  */
 export function recordMetric(type, value, unit, zoneId = null) {
   const db = getDb();
@@ -112,6 +117,7 @@ export function recordMetric(type, value, unit, zoneId = null) {
  * Handles a GreenOps request from the orchestrator.
  * @param {{ action: string, transitMode?: string }} request
  * @returns {object} Sustainability response
+  * @sideEffects Context Graph: None (Read-only by default, unless otherwise specified)
  */
 export function handleGreenRequest(request) {
   const { action = 'dashboard', transitMode } = request;

@@ -16,15 +16,21 @@ export function configureHelmet() {
     contentSecurityPolicy: {
       directives: {
         defaultSrc: ["'self'"],
-        scriptSrc: ["'self'", "'unsafe-inline'"],
+        scriptSrc: ["'self'"],
         styleSrc: ["'self'", "'unsafe-inline'"],
         imgSrc: ["'self'", "data:", "https:"],
         connectSrc: ["'self'", "https:", "wss:", "ws:"],
+        frameAncestors: ["'none'"],
+        objectSrc: ["'none'"],
       },
     },
-    crossOriginEmbedderPolicy: false,
+    crossOriginEmbedderPolicy: true,
   });
 }
+
+export const ALLOWED_ORIGINS = process.env.NODE_ENV === 'production' 
+  ? [process.env.FRONTEND_URL || 'https://fanpulse.app']
+  : ['http://localhost:5173', 'http://localhost:3000', 'http://127.0.0.1:5173'];
 
 /**
  * Configures CORS with explicit origin whitelist.
@@ -32,10 +38,10 @@ export function configureHelmet() {
  */
 export function configureCors() {
   return cors({
-    origin: true, // Allow all origins for tunnel/Vercel deployment
+    origin: ALLOWED_ORIGINS,
     methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE'],
     allowedHeaders: ['Content-Type', 'Authorization'],
-    credentials: false,
+    credentials: true,
   });
 }
 

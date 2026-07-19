@@ -130,5 +130,6 @@ export default function FanView() {
         </div>
       </div>
     </div>
+    </div>
   );
 }

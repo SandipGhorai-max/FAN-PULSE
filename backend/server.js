@@ -8,8 +8,10 @@ import 'dotenv/config';
 import express from 'express';
 import { createServer } from 'http';
 import { Server as SocketIOServer } from 'socket.io';
-import { configureHelmet, configureCors, configureGeneralRateLimit } from './middleware/security.js';
+import { configureHelmet, configureCors, configureGeneralRateLimit, ALLOWED_ORIGINS } from './middleware/security.js';
 import { googleCloudLogger } from './middleware/googleCloudLogger.js';
+import { globalErrorHandler } from './middleware/errorHandler.js';
+import { chatSchema } from './middleware/validation.js';
 import { createApiRouter } from './routes/api.js';
 import { seedDatabase } from './db/seed.js';
 import { getDb } from './db/schema.js';
@@ -28,9 +30,9 @@ const httpServer = createServer(app);
 // Socket.IO — accept all origins for deployment flexibility
 const io = new SocketIOServer(httpServer, {
   cors: {
-    origin: true, // Allow all origins (tunnel + Vercel + localhost)
+    origin: ALLOWED_ORIGINS,
     methods: ['GET', 'POST'],
-    credentials: false,
+    credentials: true,
   },
   transports: ['polling', 'websocket'], // Polling first — works through tunnels
   allowEIO3: true,
@@ -59,19 +61,38 @@ if (process.env.NODE_ENV === 'production') {
   });
 }
 
+// Global error handler must be the last middleware
+app.use(globalErrorHandler);
+
 /* ─── SOCKET.IO ─── */
+// Simple in-memory socket rate limiter
+const socketRateLimits = new Map();
+const SOCKET_RATE_LIMIT_MS = 1000; // 1 msg per sec per socket
+
 io.on('connection', (socket) => {
   console.log(`🔌 Client connected: ${socket.id}`);
 
   socket.on('chat:message', async (data) => {
+    const now = Date.now();
+    const lastMsgTime = socketRateLimits.get(socket.id) || 0;
+    if (now - lastMsgTime < SOCKET_RATE_LIMIT_MS) {
+      return socket.emit('chat:error', { message: 'Too many requests. Please wait.' });
+    }
+    socketRateLimits.set(socket.id, now);
+
     try {
-      // Frontend sends { text, context: { role, userId, location } }
-      // routeRequest expects { message, from, role }
-      const request = {
+      // Validate with Zod
+      const parseResult = chatSchema.safeParse({
         message: data.text || data.message || '',
         from: data.context?.location || data.from || '',
-        role: data.context?.role || data.role || 'fan',
-      };
+        role: data.context?.role || data.role || 'fan'
+      });
+
+      if (!parseResult.success) {
+        return socket.emit('chat:error', { message: parseResult.error.issues[0].message });
+      }
+
+      const request = parseResult.data;
       const result = await routeRequest(request);
       socket.emit('chat:response', { message: result.response, ...result });
     } catch (err) {
@@ -83,6 +104,7 @@ io.on('connection', (socket) => {
 
   socket.on('disconnect', () => {
     console.log(`🔌 Client disconnected: ${socket.id}`);
+    socketRateLimits.delete(socket.id);
   });
 });
 

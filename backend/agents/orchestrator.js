@@ -1,3 +1,4 @@
+import { withErrorHandling, AgentError } from '../utils/errorWrapper.js';
 /**
  * @module agents/orchestrator
  * @description 🧠 Orchestrator LLM — Routes fan/volunteer/organizer requests to specialist agents.
@@ -14,12 +15,14 @@ import { getDensityOverview, getActiveAlerts } from './crowdSentinel.js';
 
 /**
  * System prompt — hardcoded and immutable. User text cannot override this.
+  * @sideEffects Context Graph: None (Read-only by default, unless otherwise specified)
  */
 // SYSTEM_RULES was here
 
 /**
  * Prompt injection detection patterns.
  * @type {RegExp[]}
+  * @sideEffects Context Graph: None (Read-only by default, unless otherwise specified)
  */
 const INJECTION_PATTERNS = [
   /ignore\s+(all\s+)?(previous|prior|above)\s+(instructions|rules|prompts)/i,
@@ -34,7 +37,8 @@ const INJECTION_PATTERNS = [
   /jailbreak/i,
 ];
 
-/** Simple LRU-ish response cache */
+/** Simple LRU-ish response cache  * @sideEffects Context Graph: None (Read-only by default, unless otherwise specified)
+ */
 const responseCache = new Map();
 const CACHE_MAX_SIZE = 100;
 const CACHE_TTL_MS = 5 * 60 * 1000; // 5 minutes
@@ -43,6 +47,7 @@ const CACHE_TTL_MS = 5 * 60 * 1000; // 5 minutes
  * Checks if user input contains prompt injection attempts.
  * @param {string} text - User input text
  * @returns {boolean} True if injection detected
+  * @sideEffects Context Graph: None (Read-only by default, unless otherwise specified)
  */
 export function detectPromptInjection(text) {
   return INJECTION_PATTERNS.some(pattern => pattern.test(text));
@@ -54,6 +59,7 @@ import { generateContent } from '../utils/llm.js';
  * Classifies user intent from natural language input.
  * @param {string} text - User input text
  * @returns {Promise<{ agent: string, intent: string, params: object }>}
+  * @sideEffects Context Graph: None (Read-only by default, unless otherwise specified)
  */
 export async function classifyIntent(text) {
   const prompt = `Classify the following user request into one of the FanPulse AI agent intents.
@@ -99,6 +105,7 @@ User request: "${text}"`;
  * Routes a request to the appropriate specialist agent.
  * @param {{ message: string, from?: string, role?: string }} request
  * @returns {Promise<object>} Agent response
+  * @sideEffects Context Graph: None (Read-only by default, unless otherwise specified)
  */
 export async function routeRequest(request) {
   const { message, from, role = 'fan' } = request;
@@ -159,6 +166,7 @@ export async function routeRequest(request) {
  * @param {{ agent: string, intent: string, params: object }} classification
  * @param {{ message: string, from?: string, role?: string }} context
  * @returns {Promise<object>} Agent response
+  * @sideEffects Context Graph: None (Read-only by default, unless otherwise specified)
  */
 async function dispatchToAgent(classification, context) {
   const { agent, params } = classification;
@@ -314,6 +322,7 @@ async function dispatchToAgent(classification, context) {
  * Matches free-text zone descriptions to zone IDs.
  * @param {string} text - Zone description
  * @returns {string | null} Matched zone ID
+  * @sideEffects Context Graph: None (Read-only by default, unless otherwise specified)
  */
 function matchZoneFromText(text) {
   const lower = text.toLowerCase();
@@ -341,6 +350,7 @@ function matchZoneFromText(text) {
  * Gets an icon for a transit mode.
  * @param {string} mode - Transit mode
  * @returns {string} Emoji icon
+  * @sideEffects Context Graph: None (Read-only by default, unless otherwise specified)
  */
 function getModeIcon(mode) {
   const icons = { train: '🚂', subway: '🚇', bus: '🚌', rideshare: '🚗', walk: '🚶' };
@@ -349,6 +359,7 @@ function getModeIcon(mode) {
 
 /**
  * Clears the response cache (for testing).
+  * @sideEffects Context Graph: None (Read-only by default, unless otherwise specified)
  */
 export function clearCache() {
   responseCache.clear();

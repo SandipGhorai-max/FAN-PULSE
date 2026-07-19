@@ -1,3 +1,4 @@
+import { withErrorHandling, AgentError } from '../utils/errorWrapper.js';
 /**
  * @module agents/polyglotConcierge
  * @description 🌍 Polyglot Concierge Agent — Real-time translation in 5+ languages.
@@ -11,6 +12,7 @@ import { v4 as uuidv4 } from 'uuid';
 /**
  * Translation templates for common stadium scenarios.
  * Each key maps to translations in en/es/fr/ko/ar.
+  * @sideEffects Context Graph: None (Read-only by default, unless otherwise specified)
  */
 const TRANSLATION_TEMPLATES = {
   crowd_redirect: {
@@ -66,6 +68,7 @@ import { generateContent } from '../utils/llm.js';
  * @param {string} [zoneId] - Target zone
  * @param {'normal'|'high'|'urgent'} [priority] - Priority level
  * @returns {Promise<object>} PA announcement with all 5 languages
+  * @sideEffects Context Graph: None (Read-only by default, unless otherwise specified)
  */
 export async function generatePAAnnouncement(templateKey, vars = {}, zoneId = null, priority = 'normal') {
   const template = TRANSLATION_TEMPLATES[templateKey];
@@ -87,6 +90,7 @@ export async function generatePAAnnouncement(templateKey, vars = {}, zoneId = nu
  * @param {string} [zoneId] - Target zone
  * @param {'normal'|'high'|'urgent'} [priority] - Priority level
  * @returns {Promise<object>} PA announcement
+  * @sideEffects Context Graph: None (Read-only by default, unless otherwise specified)
  */
 export async function generateCustomPAAnnouncement(messageEn, zoneId = null, priority = 'normal') {
   const prompt = `Translate the following stadium PA announcement into Spanish, French, Korean, and Arabic.
@@ -141,6 +145,7 @@ Return STRICTLY in JSON format:
  * Gets recent PA announcements.
  * @param {number} [limit] - Number of announcements to return
  * @returns {object[]} Recent announcements
+  * @sideEffects Context Graph: None (Read-only by default, unless otherwise specified)
  */
 export function getRecentAnnouncements(limit = 10) {
   const db = getDb();
@@ -158,6 +163,7 @@ export function getRecentAnnouncements(limit = 10) {
  * @param {string} text - English text
  * @param {string} targetLang - Target language code (es/fr/ko/ar)
  * @returns {string} Translated text (template-based approximation)
+  * @sideEffects Context Graph: None (Read-only by default, unless otherwise specified)
  */
 export function translateResponse(text, targetLang) {
   const greetings = {
@@ -170,6 +176,7 @@ export function translateResponse(text, targetLang) {
  * Handles a polyglot request from the orchestrator.
  * @param {{ action: string, template?: string, vars?: object, message?: string, zoneId?: string, priority?: string }} request
  * @returns {Promise<object>} Polyglot response
+  * @sideEffects Context Graph: None (Read-only by default, unless otherwise specified)
  */
 export async function handlePolyglotRequest(request) {
   const { action = 'announce', template, vars, message, zoneId, priority } = request;

@@ -1,3 +1,4 @@
+import { withErrorHandling, AgentError } from '../utils/errorWrapper.js';
 /**
  * @module agents/accessCompanion
  * @description ♿ Access Companion Agent — Accessible routing + sensory-quiet zones.
@@ -12,6 +13,7 @@ import { findShortestPath } from './navigator.js';
  * @param {string} fromId - Starting zone ID
  * @param {string} toId - Destination zone ID
  * @returns {object} Accessible route with special accommodations noted
+  * @sideEffects Context Graph: None (Read-only by default, unless otherwise specified)
  */
 export function findAccessibleRoute(fromId, toId) {
   const result = findShortestPath(fromId, toId, { accessibleOnly: true });
@@ -47,6 +49,7 @@ export function findAccessibleRoute(fromId, toId) {
 /**
  * Gets all sensory-quiet zones with current availability.
  * @returns {object[]} Quiet zones with occupancy info
+  * @sideEffects Context Graph: None (Read-only by default, unless otherwise specified)
  */
 export function getQuietZones() {
   const db = getDb();
@@ -63,6 +66,7 @@ export function getQuietZones() {
  * Gets the nearest accessible gate to a given zone.
  * @param {string} zoneId - Current zone ID
  * @returns {object | null} Nearest accessible gate info
+  * @sideEffects Context Graph: None (Read-only by default, unless otherwise specified)
  */
 function getNearestAccessibleGate(zoneId) {
   const db = getDb();
@@ -87,6 +91,7 @@ function getNearestAccessibleGate(zoneId) {
 /**
  * Gets all accessible facilities (medical, quiet zones, accessible viewing).
  * @returns {object} Categorized accessible facilities
+  * @sideEffects Context Graph: None (Read-only by default, unless otherwise specified)
  */
 export function getAccessibleFacilities() {
   const db = getDb();
@@ -103,6 +108,7 @@ export function getAccessibleFacilities() {
  * Handles a complete accessibility request.
  * @param {{ type: string, from?: string, to?: string }} request
  * @returns {object} Response with accessible routing or facility info
+  * @sideEffects Context Graph: None (Read-only by default, unless otherwise specified)
  */
 export function handleAccessRequest(request) {
   const { type, from, to } = request;
