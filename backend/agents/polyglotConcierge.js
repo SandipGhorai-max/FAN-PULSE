@@ -7,7 +7,8 @@
 
 import { getDb } from '../db/schema.js';
 import { v4 as uuidv4 } from 'uuid';
-import { generateContent } from '../utils/llm.js';
+import { generateContent, parseLlmJson } from '../utils/llm.js';
+import { logger } from '../middleware/googleCloudLogger.js';
 
 /**
  * Translation templates for common stadium scenarios.
@@ -114,10 +115,10 @@ Return STRICTLY in JSON format:
 
   try {
     const responseText = await generateContent(prompt, 'You are a professional polyglot translator returning strict JSON.', true);
-    const data = JSON.parse(responseText.trim().replace(/^```json/i, '').replace(/```$/i, ''));
+    const data = parseLlmJson(responseText);
     translations = { ...translations, ...data };
   } catch (err) {
-    console.error('LLM translation failed:', err);
+    logger.error('LLM translation failed:', err);
   }
 
   const announcement = {

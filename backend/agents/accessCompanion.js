@@ -6,6 +6,7 @@
 
 import { getDb } from '../db/schema.js';
 import { findShortestPath } from './navigator.js';
+import { AgentError } from '../utils/errorWrapper.js';
 
 /**
  * Finds an accessible route between two zones.
@@ -114,7 +115,7 @@ export function handleAccessRequest(request) {
 
   switch (type) {
     case 'route':
-      if (!from || !to) return { error: true, message: 'Please provide start and destination zones.' };
+      if (!from || !to) throw new AgentError('Please provide start and destination zones.', 'INVALID_REQUEST', 400);
       return findAccessibleRoute(from, to);
 
     case 'quiet_zones':

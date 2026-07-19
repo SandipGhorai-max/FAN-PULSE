@@ -6,6 +6,7 @@ import { getDb, resetDb } from '../db/schema.js';
 // Mock generateContent
 vi.mock('../utils/llm.js', () => ({
   generateContent: vi.fn(),
+  parseLlmJson: vi.fn().mockImplementation((text) => JSON.parse(text.trim().replace(/^```json/i, '').replace(/^```/i, '').replace(/```$/i, '').trim())),
 }));
 
 describe('Polyglot Concierge — translateResponse', () => {

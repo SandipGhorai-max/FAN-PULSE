@@ -5,6 +5,7 @@ import * as llm from '../utils/llm.js';
 // Mock generateContent
 vi.mock('../utils/llm.js', () => ({
   generateContent: vi.fn(),
+  parseLlmJson: vi.fn().mockImplementation((text) => JSON.parse(text.trim().replace(/^```json/i, '').replace(/^```/i, '').replace(/```$/i, '').trim())),
 }));
 
 describe('Orchestrator Agent Tests', () => {

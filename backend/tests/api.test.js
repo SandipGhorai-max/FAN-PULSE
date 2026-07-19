@@ -2,6 +2,7 @@ import { describe, it, expect, vi } from 'vitest';
 import request from 'supertest';
 import express from 'express';
 import { createApiRouter } from '../routes/api.js';
+import { globalErrorHandler } from '../middleware/errorHandler.js';
 
 // Mock Socket.IO server
 const mockIo = {
@@ -12,6 +13,7 @@ const mockIo = {
 const app = express();
 app.use(express.json());
 app.use('/api', createApiRouter(mockIo));
+app.use(globalErrorHandler);
 
 describe('API Routes', () => {
   it('GET /api/health should return ok status', async () => {
@@ -60,8 +62,10 @@ describe('API Routes', () => {
   });
 
   it('POST /api/alerts/:alertId/mitigate should call ops mitigation', async () => {
+    // Should return 404 because alert123 does not exist
     const res = await request(app).post('/api/alerts/alert123/mitigate');
-    expect(res.status).toBe(200);
+    expect(res.status).toBe(404);
+    expect(res.body.error).toBe(true);
   });
 
   it('POST /api/mitigation/select should validate optionId', async () => {

@@ -5,6 +5,7 @@
  */
 
 import { getDb } from '../db/schema.js';
+import { AgentError } from '../utils/errorWrapper.js';
 
 /**
  * Builds the adjacency graph from zone_connections, weighted by distance × congestion.
@@ -146,15 +147,15 @@ export function findShortestPath(startId, endId, options = {}) {
   * @sideEffects Context Graph: None (Read-only by default, unless otherwise specified)
  */
 export function handleNavigationRequest(request) {
-  const { from, to, accessible = false } = request;
+  const { from = 'gate-a', to, accessible = false } = request;
   const db = getDb();
 
   // Validate zones exist
   const fromZone = db.prepare('SELECT * FROM zones WHERE id = ?').get(from);
   const toZone = db.prepare('SELECT * FROM zones WHERE id = ?').get(to);
 
-  if (!fromZone) return { error: true, message: `Unknown zone: ${from}` };
-  if (!toZone) return { error: true, message: `Unknown zone: ${to}` };
+  if (!fromZone) throw new AgentError(`Unknown zone: ${from}`, 'NOT_FOUND', 404);
+  if (!toZone) throw new AgentError(`Unknown zone: ${to}`, 'NOT_FOUND', 404);
 
   const result = findShortestPath(from, to, { accessibleOnly: accessible });
 

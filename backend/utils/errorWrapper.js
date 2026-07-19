@@ -3,6 +3,8 @@
  * @description Standardized error wrapper for unified error handling across agents.
  */
 
+import { logger } from '../middleware/googleCloudLogger.js';
+
 export class AgentError extends Error {
   /**
    * @param {string} message - User-facing error message
@@ -24,7 +26,7 @@ export class AgentError extends Error {
  * @returns {{ status: string, code: string, message: string, agent: string }} Standard error response
  */
 export function handleAgentError(err, agentName) {
-  console.error(`[${agentName}] Error:`, err);
+  logger.error(`[${agentName}] Error:`, err);
   if (err instanceof AgentError) {
     return {
       status: 'error',

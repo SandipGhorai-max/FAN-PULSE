@@ -4,7 +4,8 @@
  * for navigation and accessibility alignment.
  */
 
-import { generateVisionContent } from '../utils/llm.js';
+import { generateVisionContent, parseLlmJson } from '../utils/llm.js';
+import { logger } from '../middleware/googleCloudLogger.js';
 
 /**
  * Scans a ticket image to extract seating and routing info.
@@ -32,10 +33,10 @@ Return STRICTLY in JSON format:
       base64Image, 
       'You are a multimodal AI returning strict JSON representing a parsed event ticket.'
     );
-    const data = JSON.parse(responseText.trim().replace(/^```json/i, '').replace(/```$/i, ''));
+    const data = parseLlmJson(responseText);
     return { success: true, data };
   } catch (err) {
-    console.error('Vision Copilot Error:', err);
+    logger.error('Vision Copilot Error:', err);
     // Return a mocked successful response for demo fallback
     return {
       success: true,

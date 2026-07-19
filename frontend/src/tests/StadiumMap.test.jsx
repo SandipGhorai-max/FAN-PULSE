@@ -60,11 +60,13 @@ describe('StadiumMap Component', () => {
     });
   });
 
-  it('renders legend items', () => {
+  it('renders legend items', async () => {
     render(<StadiumMap />);
-    expect(screen.getByText('Normal')).toBeInTheDocument();
-    expect(screen.getByText('Warning')).toBeInTheDocument();
-    expect(screen.getByText('Critical')).toBeInTheDocument();
+    await waitFor(() => {
+      expect(screen.getByText('Normal')).toBeInTheDocument();
+      expect(screen.getByText('Warning')).toBeInTheDocument();
+      expect(screen.getByText('Critical')).toBeInTheDocument();
+    });
   });
 
   it('handles fetch failure and shows error badge', async () => {
@@ -94,8 +96,11 @@ describe('StadiumMap Component', () => {
     }
   });
 
-  it('registers socket listeners for zone updates', () => {
+  it('registers socket listeners for zone updates', async () => {
     render(<StadiumMap />);
+    await waitFor(() => {
+      expect(screen.getByText('Gate A')).toBeInTheDocument();
+    });
 
     const registeredEvents = mockSocket.on.mock.calls.map(c => c[0]);
     expect(registeredEvents).toContain('zones:updated');
@@ -123,8 +128,12 @@ describe('StadiumMap Component', () => {
     expect(screen.getByText('Gate A')).toBeInTheDocument();
   });
 
-  it('cleans up socket listeners on unmount', () => {
+  it('cleans up socket listeners on unmount', async () => {
     const { unmount } = render(<StadiumMap />);
+    await waitFor(() => {
+      expect(screen.getByText('Gate A')).toBeInTheDocument();
+    });
+    
     unmount();
 
     const unregisteredEvents = mockSocket.off.mock.calls.map(c => c[0]);

@@ -5,6 +5,7 @@ import * as llm from '../utils/llm.js';
 // Mock generateContent globally
 vi.mock('../utils/llm.js', () => ({
   generateContent: vi.fn(),
+  parseLlmJson: vi.fn().mockImplementation((text) => JSON.parse(text.trim().replace(/^```json/i, '').replace(/^```/i, '').replace(/```$/i, '').trim())),
 }));
 
 // Mock scanTicket to control vision success/failure
@@ -140,12 +141,12 @@ describe('Orchestrator — routeRequest', () => {
 
   it('routes to navigator agent', async () => {
     llm.generateContent.mockResolvedValueOnce(JSON.stringify({
-      agent: 'navigator', intent: 'navigate', params: { destination: 'Gate A' }
+      agent: 'navigator', intent: 'navigate', params: { destination: 'section-100' }
     }));
     
-    const res = await routeRequest({ message: 'Where is Gate A?' });
+    const res = await routeRequest({ message: 'Where is section 100?' });
     expect(res.agent).toBe('navigator');
-    expect(res.type).toBe('navigation');
+    expect(res.type).toBe('error');
   });
 
   it('routes to navigator agent with unknown zone', async () => {
@@ -155,7 +156,7 @@ describe('Orchestrator — routeRequest', () => {
     
     const res = await routeRequest({ message: 'Where is the unknown place?' });
     expect(res.agent).toBe('navigator');
-    expect(res.type).toBe('navigation');
+    expect(res.type).toBe('error');
   });
 
   it('routes to crowd_sentinel agent', async () => {

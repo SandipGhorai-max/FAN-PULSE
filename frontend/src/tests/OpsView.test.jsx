@@ -229,8 +229,11 @@ describe('OpsView Component', () => {
     });
   });
 
-  it('registers socket event listeners on mount', () => {
+  it('registers socket event listeners on mount', async () => {
     render(<OpsView />);
+    await waitFor(() => {
+      expect(screen.getByText('High density at Gate A')).toBeInTheDocument();
+    });
 
     const registeredEvents = mockSocket.on.mock.calls.map(c => c[0]);
     expect(registeredEvents).toContain('alert:new');
@@ -244,6 +247,9 @@ describe('OpsView Component', () => {
 
   it('handles alert:new socket event', async () => {
     render(<OpsView />);
+    await waitFor(() => {
+      expect(screen.getByText('High density at Gate A')).toBeInTheDocument();
+    });
 
     const onCall = mockSocket.on.mock.calls.find(c => c[0] === 'alert:new');
     const handler = onCall[1];
@@ -257,6 +263,9 @@ describe('OpsView Component', () => {
 
   it('handles demo:step socket event', async () => {
     render(<OpsView />);
+    await waitFor(() => {
+      expect(screen.getByText('High density at Gate A')).toBeInTheDocument();
+    });
 
     const onCall = mockSocket.on.mock.calls.find(c => c[0] === 'demo:step');
     const handler = onCall[1];
@@ -287,8 +296,11 @@ describe('OpsView Component', () => {
     expect(screen.queryByText('High density at Gate A')).not.toBeInTheDocument();
   });
 
-  it('cleans up socket listeners on unmount', () => {
+  it('cleans up socket listeners on unmount', async () => {
     const { unmount } = render(<OpsView />);
+    await waitFor(() => {
+      expect(screen.getByText('High density at Gate A')).toBeInTheDocument();
+    });
     unmount();
 
     const unregisteredEvents = mockSocket.off.mock.calls.map(c => c[0]);

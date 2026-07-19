@@ -1,4 +1,5 @@
 import { GoogleGenAI } from '@google/genai';
+import { logger } from '../middleware/googleCloudLogger.js';
 
 // Initialize the Google Gen AI SDK
 const apiKey = process.env.LLM_API_KEY || process.env.GEMINI_API_KEY;
@@ -7,7 +8,7 @@ let ai = null;
 if (apiKey) {
   ai = new GoogleGenAI({ apiKey });
 } else {
-  console.warn('⚠️ No LLM_API_KEY found. LLM calls will fail unless provided.');
+  logger.warn('⚠️ No LLM_API_KEY found. LLM calls will fail unless provided.');
 }
 
 /**
@@ -48,11 +49,11 @@ export async function generateContent(prompt, systemInstruction = '', jsonMode =
       const isRetryable = err?.status === 429 || err?.status >= 500 || err?.message?.includes('fetch failed');
       
       if (retries === 0 || !isRetryable) {
-        console.error('LLM Generation Error:', err);
+        logger.error('LLM Generation Error:', err);
         throw err;
       }
       
-      console.warn(`⚠️ LLM API Error (Retrying in ${backoff}ms): ${err.message}`);
+      logger.warn(`⚠️ LLM API Error (Retrying in ${backoff}ms): ${err.message}`);
       await new Promise((resolve) => setTimeout(resolve, backoff));
       backoff *= 2; // Exponential backoff
     }
@@ -109,7 +110,22 @@ export async function generateVisionContent(prompt, base64Image, systemInstructi
     });
     return response.text;
   } catch (err) {
-    console.error('LLM Vision Error:', err);
+    logger.error('LLM Vision Error:', err);
     throw err;
   }
+}
+
+/**
+ * Robustly parses JSON from LLM output, handling potential markdown code blocks.
+ * @param {string} text - The raw text from the LLM
+ * @returns {object} The parsed JSON object
+ * @throws {Error} If parsing fails
+ */
+export function parseLlmJson(text) {
+  if (!text || typeof text !== 'string') {
+    throw new Error('Invalid input to parseLlmJson: not a string');
+  }
+  // Strip markdown code blocks if present
+  const cleaned = text.trim().replace(/^```json/i, '').replace(/^```/i, '').replace(/```$/i, '').trim();
+  return JSON.parse(cleaned);
 }

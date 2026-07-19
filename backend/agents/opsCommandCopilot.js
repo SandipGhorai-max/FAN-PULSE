@@ -6,7 +6,9 @@
 
 import { getDb } from '../db/schema.js';
 import { v4 as uuidv4 } from 'uuid';
-import { generateContent } from '../utils/llm.js';
+import { generateContent, parseLlmJson } from '../utils/llm.js';
+import { logger } from '../middleware/googleCloudLogger.js';
+import { AgentError } from '../utils/errorWrapper.js';
 
 /**
  * Generates mitigation options for a critical alert.
@@ -23,7 +25,7 @@ export async function generateMitigationOptions(alertId) {
     WHERE a.id = ?
   `).get(alertId);
 
-  if (!alert) return { error: true, message: 'Alert not found' };
+  if (!alert) throw new AgentError('Alert not found', 'NOT_FOUND', 404);
 
   // Generate context-aware mitigation options
   const options = await getMitigationStrategies(alert);
@@ -82,10 +84,10 @@ Return STRICTLY in JSON format as an array of objects:
 
   try {
     const responseText = await generateContent(prompt, 'You are an ops mitigation AI returning strict JSON arrays.', true);
-    const data = JSON.parse(responseText.trim().replace(/^```json/i, '').replace(/```$/i, ''));
+    const data = parseLlmJson(responseText);
     return data;
   } catch (err) {
-    console.error('LLM mitigation generation failed:', err);
+    logger.error('LLM mitigation generation failed:', err);
     // Fallback to static if LLM fails
     return [
       {
@@ -115,7 +117,7 @@ export function selectMitigationOption(optionId, selectedBy = 'ops_organizer') {
   const db = getDb();
 
   const option = db.prepare('SELECT * FROM mitigation_actions WHERE id = ?').get(optionId);
-  if (!option) return { error: true, message: 'Option not found' };
+  if (!option) throw new AgentError('Option not found', 'NOT_FOUND', 404);
 
   // Mark selected option
   db.prepare(`
@@ -196,10 +198,10 @@ export async function handleOpsRequest(request) {
     case 'dashboard':
       return getOpsDashboard();
     case 'mitigate':
-      if (!alertId) return { error: true, message: 'alertId required' };
+      if (!alertId) throw new AgentError('alertId required', 'INVALID_REQUEST', 400);
       return await generateMitigationOptions(alertId);
     case 'select':
-      if (!optionId) return { error: true, message: 'optionId required' };
+      if (!optionId) throw new AgentError('optionId required', 'INVALID_REQUEST', 400);
       return selectMitigationOption(optionId, selectedBy);
     default:
       return getOpsDashboard();

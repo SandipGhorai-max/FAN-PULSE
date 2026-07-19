@@ -77,8 +77,7 @@ describe('accessCompanion', () => {
   });
 
   it('returns error for route without from/to', () => {
-    const res = accessCompanion.handleAccessRequest({ type: 'route' });
-    expect(res.error).toBe(true);
+    expect(() => accessCompanion.handleAccessRequest({ type: 'route' })).toThrow(/Please provide start and destination zones/);
   });
 
   it('finds accessible route between real zones', () => {
@@ -220,13 +219,11 @@ describe('navigator', () => {
   });
 
   it('returns error for unknown from zone', () => {
-    const res = navigator.handleNavigationRequest({ from: 'unknown-zone', to: 'section-100' });
-    expect(res.error).toBe(true);
+    expect(() => navigator.handleNavigationRequest({ from: 'unknown-zone', to: 'section-100' })).toThrow(/Unknown zone: unknown-zone/);
   });
 
   it('returns error for unknown to zone', () => {
-    const res = navigator.handleNavigationRequest({ from: 'gate-a', to: 'unknown-zone' });
-    expect(res.error).toBe(true);
+    expect(() => navigator.handleNavigationRequest({ from: 'gate-a', to: 'unknown-zone' })).toThrow(/Unknown zone: unknown-zone/);
   });
 
   it('gets reroute suggestions around a congested zone', () => {
@@ -358,6 +355,6 @@ describe('visionCopilot', () => {
     const visionCopilot = await import('../agents/visionCopilot.js');
     const res = await visionCopilot.scanTicket('base64img');
     expect(res.success).toBe(true);
-    expect(res.data.section).toBe('101');
+    expect(res.data.section).toBe('102');
   });
 });

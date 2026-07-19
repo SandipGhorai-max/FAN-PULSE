@@ -29,8 +29,8 @@ describe('FanView Component', () => {
           ok: true,
           json: () => Promise.resolve({
             zones: [
-              { name: 'Gate A', current_density: 30, status: 'normal' },
-              { name: 'Gate B', current_density: 85, status: 'warning' },
+              { id: 'gate-a', name: 'Gate A', current_density: 30, status: 'normal' },
+              { id: 'gate-b', name: 'Gate B', current_density: 85, status: 'warning' },
             ]
           }),
         });

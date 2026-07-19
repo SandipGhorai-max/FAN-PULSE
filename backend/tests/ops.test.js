@@ -32,8 +32,7 @@ describe('Ops Command Copilot', () => {
     expect(res.options.length).toBeGreaterThan(0);
     optionId = res.options[0].id;
     
-    const resErr = await handleOpsRequest({ action: 'mitigate' });
-    expect(resErr.error).toBe(true);
+    await expect(handleOpsRequest({ action: 'mitigate' })).rejects.toThrow(/alertId required/);
   });
 
   it('handleOpsRequest routes select properly', async () => {
@@ -44,17 +43,14 @@ describe('Ops Command Copilot', () => {
     const res = await handleOpsRequest({ action: 'select', optionId: optId });
     expect(res.status).toBe('selected');
     
-    const resErr = await handleOpsRequest({ action: 'select' });
-    expect(resErr.error).toBe(true);
+    await expect(handleOpsRequest({ action: 'select' })).rejects.toThrow(/optionId required/);
   });
 
   it('selectMitigationOption returns error if option not found', () => {
-    const res = selectMitigationOption('invalid');
-    expect(res.error).toBe(true);
+    expect(() => selectMitigationOption('unknown-option')).toThrow(/Option not found/);
   });
 
   it('generateMitigationOptions returns error if alert not found', async () => {
-    const res = await generateMitigationOptions('invalid');
-    expect(res.error).toBe(true);
+    await expect(generateMitigationOptions('unknown-alert')).rejects.toThrow(/Alert not found/);
   });
 });

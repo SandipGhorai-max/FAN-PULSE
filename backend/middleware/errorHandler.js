@@ -1,4 +1,6 @@
 import { AgentError } from '../utils/errorWrapper.js';
+import { ZodError } from 'zod';
+import { logger } from './googleCloudLogger.js';
 
 /**
  * Global error handler middleware for Express API routes.
@@ -9,7 +11,7 @@ import { AgentError } from '../utils/errorWrapper.js';
  */
 // eslint-disable-next-line no-unused-vars
 export function globalErrorHandler(err, req, res, next) {
-  console.error(`[API Error] ${req.method} ${req.originalUrl}:`, err);
+  logger.error(`[API Error] ${req.method} ${req.originalUrl}:`, err);
 
   if (err instanceof AgentError) {
     return res.status(err.status).json({

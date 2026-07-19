@@ -9,9 +9,10 @@ import express from 'express';
 import { createServer } from 'http';
 import { Server as SocketIOServer } from 'socket.io';
 import { configureHelmet, configureCors, configureGeneralRateLimit, ALLOWED_ORIGINS } from './middleware/security.js';
-import { googleCloudLogger } from './middleware/googleCloudLogger.js';
+import { googleCloudLogger, logger } from './middleware/googleCloudLogger.js';
 import { globalErrorHandler } from './middleware/errorHandler.js';
 import { chatSchema } from './middleware/validation.js';
+import { handleAgentError } from './utils/errorWrapper.js';
 import { createApiRouter } from './routes/api.js';
 import { seedDatabase } from './db/seed.js';
 import { getDb } from './db/schema.js';
@@ -70,7 +71,7 @@ const socketRateLimits = new Map();
 const SOCKET_RATE_LIMIT_MS = 1000; // 1 msg per sec per socket
 
 io.on('connection', (socket) => {
-  console.log(`🔌 Client connected: ${socket.id}`);
+  logger.info(`🔌 Client connected: ${socket.id}`);
 
   socket.on('chat:message', async (data) => {
     const now = Date.now();
@@ -96,14 +97,13 @@ io.on('connection', (socket) => {
       const result = await routeRequest(request);
       socket.emit('chat:response', { message: result.response, ...result });
     } catch (err) {
-      // Log any errors from chat handling
-      console.error('Chat socket error:', err);
-      socket.emit('chat:error', { message: 'Something went wrong. Please try again.' });
+      const errorObj = handleAgentError(err, 'Orchestrator');
+      socket.emit('chat:error', { message: errorObj.message });
     }
   });
 
   socket.on('disconnect', () => {
-    console.log(`🔌 Client disconnected: ${socket.id}`);
+    logger.info(`🔌 Client disconnected: ${socket.id}`);
     socketRateLimits.delete(socket.id);
   });
 });
@@ -117,14 +117,14 @@ if (!isSeeded) {
 }
 
 httpServer.listen(PORT, () => {
-  console.log('');
-  console.log('╔══════════════════════════════════════════════════╗');
-  console.log('║  ⚽ FanPulse AI — FIFA World Cup 2026 Backend    ║');
-  console.log(`║  🌐 Server running on http://localhost:${PORT}       ║`);
-  console.log('║  📡 Socket.IO ready for real-time events         ║');
-  console.log('║  💾 SQLite Stadium Context Graph initialized     ║');
-  console.log('╚══════════════════════════════════════════════════╝');
-  console.log('');
+  logger.info('');
+  logger.info('╔══════════════════════════════════════════════════╗');
+  logger.info('║  ⚽ FanPulse AI — FIFA World Cup 2026 Backend    ║');
+  logger.info(`║  🌐 Server running on http://localhost:${PORT}       ║`);
+  logger.info('║  📡 Socket.IO ready for real-time events         ║');
+  logger.info('║  💾 SQLite Stadium Context Graph initialized     ║');
+  logger.info('╚══════════════════════════════════════════════════╝');
+  logger.info('');
 });
 
 export { app, httpServer, io };
